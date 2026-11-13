@@ -6,6 +6,8 @@ Le profil opt-in `compose.portainer.synthetic.yaml` ajoute une source `synthetic
 
 Sélectionner ce chemin Compose dans la stack Git existante, sans changer le nom de projet ni supprimer ses volumes. Conserver les variables existantes et ajouter des secrets distincts dans `OTLP_PASSWORDS_JSON` et `METRICS_TOKENS_JSON`, chacun sous la clé `synthetic`.
 
+Pour une stack qui conserve `compose.portainer.yaml`, activer le même pilote avec **les deux** variables `OBSERVE_PILOT_PREFIX=synthetic-` et `COMPOSE_PROFILES=synthetic`, en plus des deux objets de secrets. La première choisit les images contenant la configuration pilote ; la seconde démarre le conteneur synthétique. Retirer les deux variables pour revenir aux images normales, puis retirer seulement le conteneur synthétique orphelin. Le pilote reste désactivé par défaut.
+
 La passerelle protège les routes OTLP et `POST /synthetic-test` par Basic auth (`synthetic` et le mot de passe OTLP). Cette dernière route accepte uniquement un `trace_id` hexadécimal de 32 caractères, incrémente un compteur et écrit un log de test. Les métriques sont protégées par bearer token. Les fichiers de test sont bornés à environ 2 Mio par rotation.
 
 ## Validation

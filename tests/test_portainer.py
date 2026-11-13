@@ -11,7 +11,7 @@ class PortainerTests(unittest.TestCase):
     def test_packaged_configs_no_host_mounts(self):
         config = yaml.safe_load(portainer.render())
         for name, service in config['services'].items():
-            self.assertEqual(service['build']['target'], name)
+            self.assertIn(service['build']['target'], (name, '${OBSERVE_PILOT_PREFIX:-}' + name))
             for mount in service.get('volumes', []):
                 self.assertIn(mount.split(':')[0], config['volumes'], mount)
 

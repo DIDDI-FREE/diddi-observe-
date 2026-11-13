@@ -52,7 +52,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: prometheus
+      target: ${OBSERVE_PILOT_PREFIX:-}prometheus
     pull_policy: build
     depends_on:
       init-storage:
@@ -134,7 +134,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: alloy
+      target: ${OBSERVE_PILOT_PREFIX:-}alloy
     pull_policy: build
   gateway:
     restart: unless-stopped
@@ -164,7 +164,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: gateway
+      target: ${OBSERVE_PILOT_PREFIX:-}gateway
     pull_policy: build
   blackbox:
     restart: unless-stopped
@@ -190,7 +190,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: registry
+      target: ${OBSERVE_PILOT_PREFIX:-}registry
     restart: unless-stopped
     networks:
     - backend
@@ -211,7 +211,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: init-storage
+      target: ${OBSERVE_PILOT_PREFIX:-}init-storage
     user: 0:0
     network_mode: none
     restart: 'no'
@@ -223,6 +223,7 @@ services:
     - loki-data:/volumes/loki
     - gateway-secret:/gateway-secret
     - metrics-secret:/metrics-secret
+    - log-inputs:/var/log/inputs
     read_only: true
     cap_drop:
     - ALL
@@ -242,6 +243,35 @@ services:
       METRICS_TOKENS_JSON: ${METRICS_TOKENS_JSON:-{}}
     tmpfs:
     - /tmp
+  synthetic:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: synthetic
+    pull_policy: build
+    restart: unless-stopped
+    networks:
+    - backend
+    user: 65534:65534
+    read_only: true
+    cap_drop:
+    - ALL
+    security_opt:
+    - no-new-privileges:true
+    mem_limit: 64m
+    volumes:
+    - metrics-secret:/secrets:ro
+    - log-inputs:/var/log/inputs
+    depends_on:
+      init-storage:
+        condition: service_completed_successfully
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '2'
+    profiles:
+    - synthetic
 networks:
   backend:
     internal: true

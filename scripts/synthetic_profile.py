@@ -27,17 +27,7 @@ def outputs():
     config = yaml.safe_load(portainer.render())
     for name in ('prometheus', 'alloy', 'gateway', 'registry', 'init-storage'):
         config['services'][name]['build']['target'] = 'synthetic-' + name
-    init = config['services']['init-storage']
-    init['volumes'].append('log-inputs:/var/log/inputs')
-    config['services']['synthetic'] = {
-        'build': {'context': '.', 'dockerfile': 'Dockerfile', 'target': 'synthetic'},
-        'pull_policy': 'build', 'restart': 'unless-stopped', 'networks': ['backend'],
-        'user': '65534:65534', 'read_only': True, 'cap_drop': ['ALL'],
-        'security_opt': ['no-new-privileges:true'], 'mem_limit': '64m',
-        'volumes': ['metrics-secret:/secrets:ro', 'log-inputs:/var/log/inputs'],
-        'depends_on': {'init-storage': {'condition': 'service_completed_successfully'}},
-        'logging': {'driver': 'json-file', 'options': {'max-size': '10m', 'max-file': '2'}},
-    }
+    config['services']['synthetic'] = portainer.pilot_service()
     config['services']['gateway']['depends_on']['synthetic'] = {'condition': 'service_started'}
     return {
         'config/synthetic/prometheus.yaml': yaml.safe_dump(render.prometheus(registry), sort_keys=False),
