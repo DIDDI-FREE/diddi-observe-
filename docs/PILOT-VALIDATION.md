@@ -23,8 +23,22 @@ Le rapport machine local est `test-results/smoke.json` (hors Git). La vérificat
 
 Le scrape de l’exporteur de registre écrasait les labels des services par ceux du collecteur. `honor_labels` est maintenant activé uniquement pour cet exporteur interne de confiance. Les séries antérieures peuvent rester visibles temporairement dans la fenêtre de recherche Prometheus, et restent consultables dans l’historique.
 
+## Panne contrôlée et retour au service
+
+Le 13 novembre 2026, seul `diddi-observe-synthetic-1` a été arrêté via Portainer, puis redémarré. Les heures ci-dessous sont en UTC.
+
+- 17:50:22 : contrôle préalable, scrape et readiness à `1`, quatre règles inactives.
+- 17:51:20 : les deux alertes du pilote passent en attente ; scrape et readiness à `0`.
+- 17:53:20 : `target-down` et `readiness-down` passent à `firing`, avec les labels `service_name=synthetic`, `environment=test` et `deployment_id=observe-pilot`.
+- Avant 17:53:56 : le récepteur local du registre journalise deux événements `observe.alert.received` (3537 et 3370 octets).
+- 17:54:03 : pilote redémarré et état Docker `running` confirmé.
+- 17:54:43 : scrape et readiness revenus à `1` ; `target-down` inactive.
+- 17:55:20 : `readiness-down` également inactive. Les quatre règles sont revenues à l'état inactif.
+
+La chronologie machine est conservée localement dans `test-results/alert-validation.jsonl` (hors Git). La réception locale est attestée par les logs ; le récepteur ne journalise pas le contenu des notifications, donc leur contenu et une notification de résolution ne sont pas certifiés par ce test. La résolution est vérifiée dans l'API des règles Grafana. Aucun canal de notification externe n'a été sollicité. Même limite TLS autosigné que pour le test précédent.
+
 ## Périmètre restant
 
-Les 15 modules réels restent désactivés. Aucun SLO métier ou conformité C01–C12 n’est déclaré. Le déclenchement et la résolution d’une alerte par panne contrôlée, les notifications externes, la validation visuelle interactive et la restauration des sauvegardes restent à réaliser.
+Les 15 modules réels restent désactivés. Aucun SLO métier ou conformité C01–C12 n’est déclaré. Les notifications externes, la validation visuelle interactive et la restauration des sauvegardes restent à réaliser.
 
 Le conteneur `synthetic` reste disponible pour rejouer un test ; il ne génère pas de trafic métier ni de charge continue. Les métriques de requêtes représentent seulement les exercices explicitement exécutés, pas du trafic réel.
