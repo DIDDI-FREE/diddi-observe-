@@ -1,3 +1,14 @@
 **
 !app/
 !app/**
+!Dockerfile
+!config/
+!config/**
+!generated/
+!generated/prometheus.yaml
+!generated/config.alloy
+!generated/nginx.conf
+!dashboards/
+!dashboards/**
+!registry/
+!registry/services.json

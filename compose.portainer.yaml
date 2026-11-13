@@ -1,0 +1,257 @@
+name: ${COMPOSE_PROJECT_NAME:-diddi-observe}
+services:
+  grafana:
+    restart: unless-stopped
+    networks:
+    - backend
+    volumes:
+    - grafana-data:/var/lib/grafana
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '5'
+    security_opt:
+    - no-new-privileges:true
+    mem_limit: 1g
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: 'false'
+      GF_USERS_ALLOW_SIGN_UP: 'false'
+      GF_SECURITY_COOKIE_SECURE: 'true'
+      GF_SERVER_ROOT_URL: ${GRAFANA_ROOT_URL:-https://localhost:19443/}
+      GF_ANALYTICS_REPORTING_ENABLED: 'false'
+      GF_ANALYTICS_CHECK_FOR_UPDATES: 'false'
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /opt/diddi/dashboards/platform.json
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?Set Grafana initial admin
+        password}
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: grafana
+    pull_policy: build
+  prometheus:
+    restart: unless-stopped
+    networks:
+    - backend
+    volumes:
+    - prometheus-data:/prometheus
+    - metrics-secret:/run/secrets:ro
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '5'
+    security_opt:
+    - no-new-privileges:true
+    mem_limit: 1g
+    command:
+    - --config.file=/etc/prometheus/prometheus.yml
+    - --storage.tsdb.path=/prometheus
+    - --storage.tsdb.retention.time=30d
+    - --storage.tsdb.retention.size=10GB
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: prometheus
+    pull_policy: build
+    depends_on:
+      init-storage:
+        condition: service_completed_successfully
+  loki:
+    restart: unless-stopped
+    networks:
+    - backend
+    volumes:
+    - loki-data:/loki
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '5'
+    security_opt:
+    - no-new-privileges:true
+    mem_limit: 512m
+    command:
+    - -config.file=/etc/loki/config.yaml
+    depends_on:
+      init-storage:
+        condition: service_completed_successfully
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: loki
+    pull_policy: build
+  tempo:
+    restart: unless-stopped
+    networks:
+    - backend
+    volumes:
+    - tempo-data:/var/tempo
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '5'
+    security_opt:
+    - no-new-privileges:true
+    mem_limit: 1g
+    command:
+    - -config.file=/etc/tempo/config.yaml
+    - -backend-scheduler.provider.work.compaction.block-retention=168h
+    - -backend-worker.compaction.block-retention=168h
+    depends_on:
+      init-storage:
+        condition: service_completed_successfully
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: tempo
+    pull_policy: build
+  alloy:
+    restart: unless-stopped
+    networks:
+    - backend
+    volumes:
+    - alloy-data:/var/lib/alloy
+    - log-inputs:/var/log/inputs:ro
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '5'
+    security_opt:
+    - no-new-privileges:true
+    mem_limit: 512m
+    command:
+    - run
+    - --stability.level=public-preview
+    - --server.http.listen-addr=0.0.0.0:12345
+    - --storage.path=/var/lib/alloy
+    - /etc/alloy/config.alloy
+    depends_on:
+    - loki
+    - tempo
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: alloy
+    pull_policy: build
+  gateway:
+    restart: unless-stopped
+    networks:
+    - frontend
+    - backend
+    volumes:
+    - gateway-secret:/etc/nginx/tls:ro
+    - gateway-secret:/etc/nginx/auth:ro
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '5'
+    security_opt:
+    - no-new-privileges:true
+    mem_limit: 512m
+    ports:
+    - ${OBSERVE_BIND:-127.0.0.1}:${OBSERVE_PORT:-19443}:8443
+    depends_on:
+      grafana:
+        condition: service_started
+      alloy:
+        condition: service_started
+      init-storage:
+        condition: service_completed_successfully
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: gateway
+    pull_policy: build
+  blackbox:
+    restart: unless-stopped
+    networks:
+    - backend
+    volumes: []
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '5'
+    security_opt:
+    - no-new-privileges:true
+    mem_limit: 512m
+    command:
+    - --config.file=/etc/blackbox/config.yaml
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: blackbox
+    pull_policy: build
+  registry:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: registry
+    restart: unless-stopped
+    networks:
+    - backend
+    volumes: []
+    read_only: true
+    cap_drop:
+    - ALL
+    security_opt:
+    - no-new-privileges:true
+    mem_limit: 128m
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '5'
+    pull_policy: build
+  init-storage:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: init-storage
+    user: 0:0
+    network_mode: none
+    restart: 'no'
+    command:
+    - python
+    - /app/runtime_init.py
+    volumes:
+    - tempo-data:/volumes/tempo
+    - loki-data:/volumes/loki
+    - gateway-secret:/gateway-secret
+    - metrics-secret:/metrics-secret
+    read_only: true
+    cap_drop:
+    - ALL
+    cap_add:
+    - CHOWN
+    - FOWNER
+    - DAC_OVERRIDE
+    security_opt:
+    - no-new-privileges:true
+    mem_limit: 64m
+    pull_policy: build
+    environment:
+      OBSERVE_TLS_HOST: ${OBSERVE_TLS_HOST:-localhost}
+      TLS_CERT_PEM: ${TLS_CERT_PEM:-}
+      TLS_KEY_PEM: ${TLS_KEY_PEM:-}
+      OTLP_PASSWORDS_JSON: ${OTLP_PASSWORDS_JSON:-{}}
+      METRICS_TOKENS_JSON: ${METRICS_TOKENS_JSON:-{}}
+    tmpfs:
+    - /tmp
+networks:
+  backend:
+    internal: true
+  frontend: {}
+volumes:
+  grafana-data: {}
+  prometheus-data: {}
+  loki-data: {}
+  tempo-data: {}
+  alloy-data: {}
+  gateway-secret: {}
+  metrics-secret: {}
+  log-inputs: {}

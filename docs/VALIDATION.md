@@ -1,5 +1,11 @@
 # Validation locale — 13 novembre 2026
 
+## Profil Portainer avec build
+
+Le profil `compose.portainer.yaml` a été construit et démarré sur Docker Desktop dans un projet isolé, avec volumes vierges et sans bind mounts de fichiers. HTTPS vérifié, connexion Grafana, six dashboards, quatre alertes et six cibles Prometheus internes saines ont été contrôlés par `scripts/smoke_portainer.py`. Les tests vérifient aussi les secrets fournis par environnement, la conservation du certificat et le rejet des paramètres incomplets. Aucun déploiement distant Portainer n’a été exécuté.
+
+## Profil local initial
+
 Exécutée sur Docker Desktop Linux, uniquement avec le service synthétique du dépôt.
 
 - 11 tests unitaires de configuration : réussis.

@@ -2,7 +2,7 @@
 
 Aucune écriture Portainer n’a été réalisée pour créer ce dépôt. Le plan de déploiement devra confirmer le domaine, le périmètre de tous les conteneurs DiddiObserve, le réseau, les volumes et les secrets. L’autorisation précédente limitée au seul conteneur diddi-observe ne s’étend pas implicitement aux autres modules.
 
-## Préparation de l’hôte
+## Profil local avec bind mounts
 
 1. Cloner le dépôt sur l’hôte qui exécutera Docker. Ne pas inclure `audit-sources` ou un inventaire privé.
 2. Installer un certificat TLS délivré pour le domaine réel dans `secrets/tls.crt` et `secrets/tls.key`. Installer un mot de passe administrateur aléatoire dans `secrets/grafana_admin`.
@@ -13,9 +13,9 @@ Aucune écriture Portainer n’a été réalisée pour créer ce dépôt. Le pla
 
 ## Portainer
 
-La stack utilise des fichiers locaux montés et un build pour l’exporteur du registre. Un simple collage du YAML sans ses fichiers ne suffit pas. La méthode initiale recommandée est un checkout préparé sur l’hôte, avec chemins absolus vers les configurations et secrets dans le Compose rendu pour cet hôte. Une stack Git Portainer doit disposer explicitement d’un mécanisme compatible pour résoudre les chemins de ce checkout sur le daemon cible ; ne pas supposer que les chemins relatifs du serveur Portainer pointent au même endroit.
+Utiliser **`compose.portainer.yaml`** : les images sont construites depuis Git avec leurs configurations intégrées. Aucun checkout manuel sur l’hôte ni bind mount de configuration n’est nécessaire. Voir [PORTAINER.md](PORTAINER.md) pour les variables, TLS et mises à jour. Le fichier `compose.yaml` reste réservé au profil local décrit ci-dessus.
 
-Ne jamais placer les valeurs des secrets dans le fichier Compose ou dans Git. Les Docker secrets gérés peuvent remplacer les bind mounts individuels lors de cette préparation. Aucun `docker compose up` ne doit être lancé sur le serveur sans le feu vert de déploiement.
+Fournir les secrets via les variables Portainer, jamais dans Git ni dans des arguments de build. Aucun déploiement distant n’est exécuté par la publication de ce correctif.
 
 ## Réseau
 

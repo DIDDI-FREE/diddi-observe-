@@ -4,6 +4,12 @@ Plateforme centrale d’observabilité DIDDI : Grafana, Prometheus, Loki, Tempo 
 
 **Le dépôt prépare le déploiement. Aucun service Portainer n’est raccordé ou modifié automatiquement.** Les quinze entrées applicatives du registre sont désactivées par défaut. Le pilote local utilise exclusivement des données synthétiques.
 
+## Portainer depuis Git
+
+Utiliser **`compose.portainer.yaml`** comme chemin Compose dans une stack Git Docker Standalone. Le `Dockerfile` racine contient une cible par service : les configurations sont copiées dans les images lors du build sur le serveur. Aucun registre d’images personnel, téléchargement Git au démarrage, ni fichier à préparer sur l’hôte n’est nécessaire.
+
+Renseigner `GRAFANA_ADMIN_PASSWORD` dans les variables Portainer. Pour l’accès distant, définir aussi `OBSERVE_BIND`, `GRAFANA_ROOT_URL` et `OBSERVE_TLS_HOST`. Voir [les instructions et variables](docs/PORTAINER.md). Le fichier `compose.yaml` reste le profil local avec bind mounts.
+
 ## Démarrage local
 
 Prérequis : Docker Engine + Compose v2 ou supérieur, Python 3.11+, environ 6 Go de RAM disponibles pour la stack et de l’espace pour les images/volumes.
