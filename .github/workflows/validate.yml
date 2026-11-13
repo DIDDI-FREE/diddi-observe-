@@ -29,6 +29,8 @@ jobs:
       COMPOSE_PROJECT_NAME: observe-build-test
       GRAFANA_ADMIN_PASSWORD: ci-local-test-only
       OBSERVE_PORT: '19445'
+      OTLP_PASSWORDS_JSON: '{"synthetic":"ci-otlp-only"}'
+      METRICS_TOKENS_JSON: '{"synthetic":"ci-metrics-only"}'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -36,10 +38,20 @@ jobs:
           python-version: '3.13'
       - run: python -m pip install -r requirements-dev.txt
       - run: python scripts/portainer.py --check
-      - run: docker compose -f compose.portainer.yaml config --quiet
-      - run: docker compose -f compose.portainer.yaml up -d --build
+      - run: python scripts/synthetic_profile.py --check
+      - run: docker compose -f compose.portainer.synthetic.yaml config --quiet
+      - run: docker compose -f compose.portainer.synthetic.yaml up -d --build
       - run: python scripts/smoke_portainer.py
+      - name: Verify correlated synthetic signals
+        env:
+          OBSERVE_AUTH_FILE: test-results/ci-auth.json
+          OBSERVE_TEST_URL: https://localhost:19445
+          OBSERVE_INSECURE_TLS: '1'
+        run: |
+          mkdir -p test-results
+          printf '%s' '{"admin":"ci-local-test-only","synthetic":"ci-otlp-only"}' > test-results/ci-auth.json
+          python scripts/smoke.py
       - if: failure()
-        run: docker compose -f compose.portainer.yaml logs --tail 40
+        run: docker compose -f compose.portainer.synthetic.yaml logs --tail 40
       - if: always()
-        run: docker compose -f compose.portainer.yaml down
+        run: docker compose -f compose.portainer.synthetic.yaml down

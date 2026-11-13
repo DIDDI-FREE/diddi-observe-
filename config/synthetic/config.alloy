@@ -1,0 +1,119 @@
+logging {
+  level = "info"
+  format = "json"
+}
+
+otelcol.processor.memory_limiter "bounded" {
+  check_interval = "1s"
+  limit = "384MiB"
+  spike_limit = "96MiB"
+  output {
+    traces = [otelcol.processor.batch.central.input]
+    logs = [otelcol.processor.batch.central.input]
+  }
+}
+otelcol.processor.batch "central" {
+  timeout = "5s"
+  send_batch_size = 512
+  send_batch_max_size = 1024
+  output {
+    traces = [otelcol.exporter.otlp.tempo.input]
+    logs = [otelcol.exporter.otlphttp.loki.input]
+  }
+}
+otelcol.storage.file "queue" { directory = "/var/lib/alloy/queue" }
+otelcol.exporter.otlp "tempo" {
+  client {
+    endpoint = "tempo:4317"
+    tls { insecure = true }
+  }
+  sending_queue {
+    enabled = true
+    queue_size = 1024
+    storage = otelcol.storage.file.queue.handler
+  }
+  retry_on_failure { max_elapsed_time = "300s" }
+}
+otelcol.exporter.otlphttp "loki" {
+  client { endpoint = "http://loki:3100/otlp" }
+  sending_queue {
+    enabled = true
+    queue_size = 1024
+    storage = otelcol.storage.file.queue.handler
+  }
+  retry_on_failure { max_elapsed_time = "300s" }
+}
+loki.write "central" {
+  endpoint { url = "http://loki:3100/loki/api/v1/push" }
+}
+
+
+otelcol.receiver.otlp "synthetic" {
+  http { endpoint = "0.0.0.0:4415" }
+  output {
+    traces = [otelcol.processor.transform.synthetic.input]
+    logs = [otelcol.processor.transform.synthetic.input]
+  }
+}
+otelcol.processor.transform "synthetic" {
+  error_mode = "propagate"
+  trace_statements {
+    context = "resource"
+    statements = ["set(attributes[\"service.namespace\"], \"diddi\")",
+      "set(attributes[\"service.name\"], \"synthetic\")",
+      "set(attributes[\"deployment.environment.name\"], \"test\")",
+      "set(attributes[\"diddi.deployment.id\"], \"observe-pilot\")",
+      "set(attributes[\"diddi.component\"], \"api\")"]
+  }
+  log_statements {
+    context = "resource"
+    statements = ["set(attributes[\"service.namespace\"], \"diddi\")",
+      "set(attributes[\"service.name\"], \"synthetic\")",
+      "set(attributes[\"deployment.environment.name\"], \"test\")",
+      "set(attributes[\"diddi.deployment.id\"], \"observe-pilot\")",
+      "set(attributes[\"diddi.component\"], \"api\")"]
+  }
+  trace_statements {
+    context = "span"
+    statements = [
+      "delete_matching_keys(attributes, \"(?i).*?(authorization|password|secret|token|cookie|email|phone|url.full|db.statement).*\")",
+    ]
+  }
+  log_statements {
+    context = "log"
+    statements = [
+      "delete_matching_keys(attributes, \"(?i).*?(authorization|password|secret|token|cookie|email|phone).*\")",
+    ]
+  }
+  output {
+    traces = [otelcol.processor.memory_limiter.bounded.input]
+    logs = [otelcol.processor.memory_limiter.bounded.input]
+  }
+}
+
+
+local.file_match "synthetic" {
+  path_targets = [{__path__ = "/var/log/inputs/synthetic/*.log"}]
+}
+loki.source.file "synthetic" {
+  targets = local.file_match.synthetic.targets
+  forward_to = [loki.process.synthetic.receiver]
+}
+loki.process "synthetic" {
+  stage.json {
+    expressions = { timestamp = "timestamp || ts || at", level = "level", trace_id = "trace_id" }
+    drop_malformed = true
+  }
+  stage.timestamp {
+    source = "timestamp"
+    format = "RFC3339Nano"
+    action_on_failure = "skip"
+  }
+  stage.replace {
+    expression = `(?i)"(?:password|secret|token|authorization|cookie|otp|pin)"\s*:\s*"([^"\\]*(?:\\.[^"\\]*)*)"`
+    replace = "[REDACTED]"
+  }
+  stage.static_labels { values = {"service_name" = "synthetic", "environment" = "test", "deployment_id" = "observe-pilot", "component" = "api"} }
+  stage.label_drop { values = ["filename"] }
+  forward_to = [loki.write.central.receiver]
+}

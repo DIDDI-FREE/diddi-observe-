@@ -53,6 +53,7 @@ scrape_configs:
       component: registry
       environment: staging
       deployment_id: observe-local
+  honor_labels: true
 - job_name: observe-blackbox
   metrics_path: /metrics
   static_configs:

@@ -60,6 +60,10 @@ def main():
         identifier = service['id']
         if not re.fullmatch(r'[a-z][a-z0-9-]{0,62}', identifier):
             raise ValueError('Invalid registry identifier')
+        if identifier == 'synthetic' and Path('/var/log/inputs').exists():
+            folder = Path('/var/log/inputs/synthetic')
+            folder.mkdir(exist_ok=True)
+            os.chown(folder, 65534, 65534)
         if service.get('otlp', {}).get('enabled'):
             password = passwords.get(identifier)
             if not isinstance(password, str) or not password:

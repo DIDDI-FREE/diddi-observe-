@@ -33,3 +33,18 @@ RUN pip install --no-cache-dir cryptography==46.0.3 bcrypt==5.0.0
 COPY app/runtime_init.py /app/runtime_init.py
 COPY registry/services.json /registry/services.json
 CMD ["python", "/app/runtime_init.py"]
+
+FROM prometheus AS synthetic-prometheus
+COPY config/synthetic/prometheus.yaml /etc/prometheus/prometheus.yml
+FROM alloy AS synthetic-alloy
+COPY config/synthetic/config.alloy /etc/alloy/config.alloy
+FROM gateway AS synthetic-gateway
+COPY config/synthetic/nginx.conf /etc/nginx/nginx.conf
+FROM registry AS synthetic-registry
+COPY config/synthetic/services.json /registry/services.json
+FROM init-storage AS synthetic-init-storage
+COPY config/synthetic/services.json /registry/services.json
+FROM python:3.13.9-alpine AS synthetic
+COPY app/pilot.py /app/pilot.py
+USER 65534:65534
+CMD ["python", "/app/pilot.py"]

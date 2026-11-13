@@ -59,6 +59,9 @@ def prometheus(data):
                                ('blackbox', 'blackbox:9115', '/metrics')]:
         jobs.append({'job_name': 'observe-' + name, 'metrics_path': path,
                      'static_configs': [{'targets': [target], 'labels': {'service_name': 'diddi-observe', 'component': name, 'environment': 'staging', 'deployment_id': 'observe-local'}}]})
+        if name == 'registry':
+            # This trusted exporter describes OTHER services; preserve their identity.
+            jobs[-1]['honor_labels'] = True
     for s in data['services']:
         m = s.get('metrics', {})
         if m.get('enabled'):

@@ -10,6 +10,8 @@ Utiliser **`compose.portainer.yaml`** comme chemin Compose dans une stack Git Do
 
 Renseigner `GRAFANA_ADMIN_PASSWORD` dans les variables Portainer. Pour l’accès distant, définir aussi `OBSERVE_BIND`, `GRAFANA_ROOT_URL` et `OBSERVE_TLS_HOST`. Voir [les instructions et variables](docs/PORTAINER.md). Le fichier `compose.yaml` reste le profil local avec bind mounts.
 
+Un [profil synthétique séparé](docs/SYNTHETIC-PILOT.md), `compose.portainer.synthetic.yaml`, permet de valider la chaîne sur le serveur sans activer les modules réels.
+
 ## Démarrage local
 
 Prérequis : Docker Engine + Compose v2 ou supérieur, Python 3.11+, environ 6 Go de RAM disponibles pour la stack et de l’espace pour les images/volumes.
