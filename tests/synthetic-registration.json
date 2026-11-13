@@ -1,0 +1,27 @@
+{
+  "id": "synthetic",
+  "name": "synthetic",
+  "environment": "test",
+  "deployment_id": "local-smoke",
+  "component": "api",
+  "owner": "local-test",
+  "state": "inventoried",
+  "evidence": [],
+  "metrics": {
+    "enabled": true,
+    "auth": "bearer",
+    "url": "http://synthetic:8000/metrics",
+    "isolated_network": true
+  },
+  "otlp": {
+    "enabled": true
+  },
+  "logs": {
+    "enabled": true
+  },
+  "health": {
+    "enabled": true,
+    "url": "http://synthetic:8000/ready",
+    "isolated_network": true
+  }
+}

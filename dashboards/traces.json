@@ -1,0 +1,130 @@
+{
+  "uid": "diddi-traces",
+  "title": "DIDDI · Traces",
+  "tags": [
+    "diddi",
+    "observability-v1"
+  ],
+  "schemaVersion": 39,
+  "version": 1,
+  "timezone": "utc",
+  "editable": false,
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "refresh": "30s",
+  "templating": {
+    "list": [
+      {
+        "name": "environment",
+        "label": "environment",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "query": "label_values(diddi_observe_service_info, environment)",
+        "refresh": 1,
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "service",
+        "label": "service",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "query": "label_values(diddi_observe_service_info{environment=~\"$environment\"}, service_name)",
+        "refresh": 1,
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "title": "Recherche de traces",
+      "type": "text",
+      "options": {
+        "mode": "markdown",
+        "content": "Utiliser Explore → Tempo pour chercher par ID, durée ou statut. Les attributs resource.service.name et deployment.environment.name proviennent de l’enregistrement authentifié. Les traces du pilote sont synthétiques."
+      },
+      "id": 1,
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 9
+      }
+    },
+    {
+      "title": "Traces des services",
+      "type": "table",
+      "datasource": {
+        "type": "tempo",
+        "uid": "tempo"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{ resource.service.name =~ \"$service\" && resource.deployment.environment.name =~ \"$environment\" }",
+          "query": "{ resource.service.name =~ \"$service\" && resource.deployment.environment.name =~ \"$environment\" }",
+          "queryType": "traceql",
+          "legendFormat": "{{service_name}} {{component}}",
+          "tableType": "traces"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Aucune donnée"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false
+        }
+      },
+      "id": 2,
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 12,
+        "h": 9
+      }
+    }
+  ],
+  "links": [
+    {
+      "title": "DIDDI dashboards",
+      "type": "dashboards",
+      "tags": [
+        "diddi"
+      ],
+      "asDropdown": true,
+      "includeVars": true,
+      "keepTime": true
+    }
+  ]
+}

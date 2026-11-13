@@ -1,0 +1,13 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+secrets/*
+!secrets/.gitkeep
+runtime/
+audit-sources/
+audit-observabilite-inventaire.json
+audit-observabilite.html
+DIDDI-Observability-v1.html
+generated/demo/
+test-results/

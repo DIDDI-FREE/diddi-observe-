@@ -1,0 +1,185 @@
+apiVersion: 1
+groups:
+- orgId: 1
+  name: DIDDI technical
+  folder: DIDDI
+  interval: 1m
+  rules:
+  - uid: target-down
+    title: Cible inaccessible
+    condition: B
+    for: 2m
+    noDataState: OK
+    execErrState: Error
+    annotations:
+      summary: Cible inaccessible
+      runbook_url: https://github.com/DIDDI-FREE/diddi-observe-/blob/main/docs/RUNBOOK.md
+    labels:
+      severity: warning
+      owner: diddi-observe
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 300
+        to: 0
+      datasourceUid: prometheus
+      model:
+        refId: A
+        expr: up == 0
+        instant: true
+        range: false
+        intervalMs: 1000
+        maxDataPoints: 43200
+    - refId: B
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: B
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - -1
+          operator:
+            type: and
+          reducer:
+            type: last
+          type: query
+  - uid: readiness-down
+    title: Service indisponible
+    condition: B
+    for: 2m
+    noDataState: OK
+    execErrState: Error
+    annotations:
+      summary: Service indisponible
+      runbook_url: https://github.com/DIDDI-FREE/diddi-observe-/blob/main/docs/RUNBOOK.md
+    labels:
+      severity: warning
+      owner: diddi-observe
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 300
+        to: 0
+      datasourceUid: prometheus
+      model:
+        refId: A
+        expr: probe_success == 0
+        instant: true
+        range: false
+        intervalMs: 1000
+        maxDataPoints: 43200
+    - refId: B
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: B
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - -1
+          operator:
+            type: and
+          reducer:
+            type: last
+          type: query
+  - uid: telemetry-loss
+    title: Perte de télémétrie
+    condition: B
+    for: 5m
+    noDataState: OK
+    execErrState: Error
+    annotations:
+      summary: Perte de télémétrie
+      runbook_url: https://github.com/DIDDI-FREE/diddi-observe-/blob/main/docs/RUNBOOK.md
+    labels:
+      severity: warning
+      owner: diddi-observe
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 300
+        to: 0
+      datasourceUid: prometheus
+      model:
+        refId: A
+        expr: sum by (service_name,environment) (rate(diddi_telemetry_dropped_total[5m]))
+          > 0
+        instant: true
+        range: false
+        intervalMs: 1000
+        maxDataPoints: 43200
+    - refId: B
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: B
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - -1
+          operator:
+            type: and
+          reducer:
+            type: last
+          type: query
+  - uid: missing-scrape
+    title: Source métriques absente
+    condition: B
+    for: 2m
+    noDataState: OK
+    execErrState: Error
+    annotations:
+      summary: Source métriques absente
+      runbook_url: https://github.com/DIDDI-FREE/diddi-observe-/blob/main/docs/RUNBOOK.md
+    labels:
+      severity: warning
+      owner: diddi-observe
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 300
+        to: 0
+      datasourceUid: prometheus
+      model:
+        refId: A
+        expr: diddi_observe_collection_enabled{signal="metrics"} == 1 unless on(service_name,environment,deployment_id,component)
+          up{job=~"service-.*"}
+        instant: true
+        range: false
+        intervalMs: 1000
+        maxDataPoints: 43200
+    - refId: B
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: B
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - -1
+          operator:
+            type: and
+          reducer:
+            type: last
+          type: query

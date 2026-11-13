@@ -1,0 +1,212 @@
+name: ${COMPOSE_PROJECT_NAME:-diddi-observe}
+services:
+  grafana:
+    image: grafana/grafana:13.3.1
+    restart: unless-stopped
+    networks:
+    - backend
+    volumes:
+    - ./config/grafana:/etc/grafana/provisioning:ro
+    - ./dashboards:/var/lib/grafana/dashboards:ro
+    - grafana-data:/var/lib/grafana
+    - ./secrets/grafana_admin:/run/secrets/grafana_admin:ro
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '5'
+    security_opt:
+    - no-new-privileges:true
+    mem_limit: 1g
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD__FILE: /run/secrets/grafana_admin
+      GF_AUTH_ANONYMOUS_ENABLED: 'false'
+      GF_USERS_ALLOW_SIGN_UP: 'false'
+      GF_SECURITY_COOKIE_SECURE: 'true'
+      GF_SERVER_ROOT_URL: ${GRAFANA_ROOT_URL:-https://localhost:19443/}
+      GF_ANALYTICS_REPORTING_ENABLED: 'false'
+      GF_ANALYTICS_CHECK_FOR_UPDATES: 'false'
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/platform.json
+  prometheus:
+    image: prom/prometheus:v3.16.0
+    restart: unless-stopped
+    networks:
+    - backend
+    volumes:
+    - ./generated/prometheus.yaml:/etc/prometheus/prometheus.yml:ro
+    - prometheus-data:/prometheus
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '5'
+    security_opt:
+    - no-new-privileges:true
+    mem_limit: 1g
+    command:
+    - --config.file=/etc/prometheus/prometheus.yml
+    - --storage.tsdb.path=/prometheus
+    - --storage.tsdb.retention.time=30d
+    - --storage.tsdb.retention.size=10GB
+  loki:
+    image: grafana/loki:3.7.10
+    restart: unless-stopped
+    networks:
+    - backend
+    volumes:
+    - ./config/loki.yaml:/etc/loki/config.yaml:ro
+    - loki-data:/loki
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '5'
+    security_opt:
+    - no-new-privileges:true
+    mem_limit: 512m
+    command:
+    - -config.file=/etc/loki/config.yaml
+    depends_on:
+      init-storage:
+        condition: service_completed_successfully
+  tempo:
+    image: grafana/tempo:3.1.1
+    restart: unless-stopped
+    networks:
+    - backend
+    volumes:
+    - ./config/tempo.yaml:/etc/tempo/config.yaml:ro
+    - tempo-data:/var/tempo
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '5'
+    security_opt:
+    - no-new-privileges:true
+    mem_limit: 1g
+    command:
+    - -config.file=/etc/tempo/config.yaml
+    - -backend-scheduler.provider.work.compaction.block-retention=168h
+    - -backend-worker.compaction.block-retention=168h
+    depends_on:
+      init-storage:
+        condition: service_completed_successfully
+  alloy:
+    image: grafana/alloy:v1.21.3
+    restart: unless-stopped
+    networks:
+    - backend
+    volumes:
+    - ./generated/config.alloy:/etc/alloy/config.alloy:ro
+    - alloy-data:/var/lib/alloy
+    - ./runtime/inputs:/var/log/inputs:ro
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '5'
+    security_opt:
+    - no-new-privileges:true
+    mem_limit: 512m
+    command:
+    - run
+    - --stability.level=public-preview
+    - --server.http.listen-addr=0.0.0.0:12345
+    - --storage.path=/var/lib/alloy
+    - /etc/alloy/config.alloy
+    depends_on:
+    - loki
+    - tempo
+  gateway:
+    image: nginx:1.31.8-alpine
+    restart: unless-stopped
+    networks:
+    - frontend
+    - backend
+    volumes:
+    - ./generated/nginx.conf:/etc/nginx/nginx.conf:ro
+    - ./secrets/tls.crt:/etc/nginx/tls/tls.crt:ro
+    - ./secrets/tls.key:/etc/nginx/tls/tls.key:ro
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '5'
+    security_opt:
+    - no-new-privileges:true
+    mem_limit: 512m
+    ports:
+    - ${OBSERVE_BIND:-127.0.0.1}:${OBSERVE_PORT:-19443}:8443
+    depends_on:
+    - grafana
+    - alloy
+  blackbox:
+    image: prom/blackbox-exporter:v0.29.1
+    restart: unless-stopped
+    networks:
+    - backend
+    volumes:
+    - ./config/blackbox.yaml:/etc/blackbox/config.yaml:ro
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '5'
+    security_opt:
+    - no-new-privileges:true
+    mem_limit: 512m
+    command:
+    - --config.file=/etc/blackbox/config.yaml
+  registry:
+    build:
+      context: .
+      dockerfile: app/Dockerfile
+    restart: unless-stopped
+    networks:
+    - backend
+    volumes:
+    - ./registry/services.json:/registry/services.json:ro
+    read_only: true
+    cap_drop:
+    - ALL
+    security_opt:
+    - no-new-privileges:true
+    mem_limit: 128m
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '5'
+  init-storage:
+    build:
+      context: .
+      dockerfile: app/Dockerfile
+    user: 0:0
+    network_mode: none
+    restart: 'no'
+    command:
+    - python
+    - -c
+    - import os; [os.chown(p,10001,10001) for p in ("/volumes/tempo","/volumes/loki")]
+    volumes:
+    - tempo-data:/volumes/tempo
+    - loki-data:/volumes/loki
+    read_only: true
+    cap_drop:
+    - ALL
+    cap_add:
+    - CHOWN
+    security_opt:
+    - no-new-privileges:true
+    mem_limit: 64m
+networks:
+  backend:
+    internal: true
+  frontend: {}
+volumes:
+  grafana-data: {}
+  prometheus-data: {}
+  loki-data: {}
+  tempo-data: {}
+  alloy-data: {}

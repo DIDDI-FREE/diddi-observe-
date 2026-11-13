@@ -1,0 +1,24 @@
+name: Validate observability stack
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: python -m pip install -r requirements-dev.txt
+      - run: python -m unittest discover -s tests -v
+      - run: python scripts/render.py --check
+      - run: python scripts/bootstrap.py --demo
+      - run: docker compose -f compose.yaml -f compose.demo.yaml config --quiet
+      - run: docker compose -f compose.yaml -f compose.demo.yaml up -d --build --quiet-pull
+      - run: python scripts/smoke.py
+      - if: failure()
+        run: docker compose -f compose.yaml -f compose.demo.yaml logs --tail 80
+      - if: always()
+        run: docker compose -f compose.yaml -f compose.demo.yaml down
