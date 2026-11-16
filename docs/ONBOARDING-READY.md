@@ -45,5 +45,6 @@ Le profil `onboarding-` utilise les noms de conteneurs complets `diddi-observe-<
 - Pilote synthétique complet réussi à 15:10:55 UTC : métriques, logs fichier et OTLP, trace Tempo, identité imposée, filtrage d'attributs et corrélation. Trace : `318a8d255c6814ae08eaa388c2d5ab28`.
 - Six dashboards provisionnés et quatre règles évaluées sans erreur. Les dix cibles de scrape sont accessibles, dont les six composants centraux.
 - Readiness privée ID à `1`. Readiness Send à `0`, API indiquée `unhealthy` par Docker ; alerte `readiness-down` déclenchée pour `diddisend`. Aucune modification de Send effectuée. Réception de notifications locales confirmée dans le registre ; aucun canal externe configuré.
+- À 15:15:45 UTC, l'alerte transitoire sur l'ancienne cible Alloy est résolue après expiration de sa série dans la fenêtre Prometheus. Seule l'alerte de readiness DiddiSend reste active.
 
 Rapports locaux sans secrets : `test-results/onboarding-verification.json` et `test-results/smoke.json`. L'arrivée de véritables logs/traces des deux producteurs et leurs métriques reste à valider après installation des paramètres par chaque équipe. Les dossiers de secrets sont exclus de Git et du contexte Docker ; les accès Windows au dossier de remise sont limités à l'utilisateur courant et SYSTEM.
