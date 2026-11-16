@@ -38,8 +38,8 @@ def main():
         encoding, form = serialization.Encoding.DER, serialization.PublicFormat.SubjectPublicKeyInfo
         if parsed_cert.public_key().public_bytes(encoding, form) != parsed_key.public_key().public_bytes(encoding, form):
             raise ValueError('TLS certificate and key do not match')
-        cert_path.write_text(cert)
-        key_path.write_text(key)
+        cert_path.write_text(cert, newline='\n')
+        key_path.write_text(key, newline='\n')
     elif not cert_path.exists() and not key_path.exists():
         host = os.getenv('OBSERVE_TLS_HOST', 'localhost')
         try:
