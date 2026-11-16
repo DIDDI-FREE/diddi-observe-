@@ -52,6 +52,15 @@ def render():
     config['volumes'].update({key: {} for key in ('gateway-secret','metrics-secret','log-inputs')})
     services['synthetic'] = pilot_service()
     services['synthetic']['profiles'] = ['synthetic']
+    # Local defaults create isolated test networks; staging opts into existing ones.
+    for key in ('id', 'send'):
+        network = 'source-' + key
+        config['networks'][network] = {
+            'name': '${OBSERVE_' + key.upper() + '_NETWORK:-diddi-observe-' + key + '-local}',
+            'external': '${OBSERVE_SOURCE_NETWORKS_EXTERNAL:-false}',
+        }
+        for name in ('prometheus', 'blackbox', 'gateway'):
+            services[name]['networks'].append(network)
     return yaml.safe_dump(config, sort_keys=False)
 
 if __name__ == '__main__':

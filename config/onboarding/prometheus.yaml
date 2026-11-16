@@ -1,0 +1,149 @@
+global:
+  scrape_interval: 15s
+  scrape_timeout: 5s
+  evaluation_interval: 15s
+scrape_configs:
+- job_name: observe-prometheus
+  metrics_path: /metrics
+  static_configs:
+  - targets:
+    - prometheus:9090
+    labels:
+      service_name: diddi-observe
+      component: prometheus
+      environment: staging
+      deployment_id: observe-local
+- job_name: observe-alloy
+  metrics_path: /metrics
+  static_configs:
+  - targets:
+    - alloy:12345
+    labels:
+      service_name: diddi-observe
+      component: alloy
+      environment: staging
+      deployment_id: observe-local
+- job_name: observe-loki
+  metrics_path: /metrics
+  static_configs:
+  - targets:
+    - loki:3100
+    labels:
+      service_name: diddi-observe
+      component: loki
+      environment: staging
+      deployment_id: observe-local
+- job_name: observe-tempo
+  metrics_path: /metrics
+  static_configs:
+  - targets:
+    - tempo:3200
+    labels:
+      service_name: diddi-observe
+      component: tempo
+      environment: staging
+      deployment_id: observe-local
+- job_name: observe-registry
+  metrics_path: /metrics
+  static_configs:
+  - targets:
+    - registry:9108
+    labels:
+      service_name: diddi-observe
+      component: registry
+      environment: staging
+      deployment_id: observe-local
+  honor_labels: true
+- job_name: observe-blackbox
+  metrics_path: /metrics
+  static_configs:
+  - targets:
+    - blackbox:9115
+    labels:
+      service_name: diddi-observe
+      component: blackbox
+      environment: staging
+      deployment_id: observe-local
+- job_name: health-diddifree-id
+  scrape_interval: 30s
+  metrics_path: /probe
+  params:
+    module:
+    - http_ready
+  static_configs:
+  - targets:
+    - http://diddi-auth-app-1:8000/health/ready
+    labels:
+      service_name: diddifree-id
+      environment: staging
+      deployment_id: diddifree-id-staging
+      component: api
+  relabel_configs:
+  - source_labels:
+    - __address__
+    target_label: __param_target
+  - source_labels:
+    - __param_target
+    target_label: instance
+  - target_label: __address__
+    replacement: blackbox:9115
+- job_name: health-diddisend
+  scrape_interval: 30s
+  metrics_path: /probe
+  params:
+    module:
+    - http_ready
+  static_configs:
+  - targets:
+    - http://diddisend-backend-api-1:8000/ready
+    labels:
+      service_name: diddisend
+      environment: staging
+      deployment_id: diddisend-staging
+      component: api
+  relabel_configs:
+  - source_labels:
+    - __address__
+    target_label: __param_target
+  - source_labels:
+    - __param_target
+    target_label: instance
+  - target_label: __address__
+    replacement: blackbox:9115
+- job_name: service-synthetic
+  scheme: http
+  metrics_path: /metrics
+  sample_limit: 20000
+  authorization:
+    credentials_file: /run/secrets/synthetic.metrics
+  static_configs:
+  - targets:
+    - synthetic:8000
+    labels:
+      service_name: synthetic
+      environment: test
+      deployment_id: observe-pilot
+      component: api
+- job_name: health-synthetic
+  scrape_interval: 30s
+  metrics_path: /probe
+  params:
+    module:
+    - http_ready
+  static_configs:
+  - targets:
+    - http://synthetic:8000/ready
+    labels:
+      service_name: synthetic
+      environment: test
+      deployment_id: observe-pilot
+      component: api
+  relabel_configs:
+  - source_labels:
+    - __address__
+    target_label: __param_target
+  - source_labels:
+    - __param_target
+    target_label: instance
+  - target_label: __address__
+    replacement: blackbox:9115

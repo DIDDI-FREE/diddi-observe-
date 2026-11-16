@@ -33,6 +33,8 @@ services:
     restart: unless-stopped
     networks:
     - backend
+    - source-id
+    - source-send
     volumes:
     - prometheus-data:/prometheus
     - metrics-secret:/run/secrets:ro
@@ -141,6 +143,8 @@ services:
     networks:
     - frontend
     - backend
+    - source-id
+    - source-send
     volumes:
     - gateway-secret:/etc/nginx/tls:ro
     - gateway-secret:/etc/nginx/auth:ro
@@ -172,6 +176,8 @@ services:
     restart: unless-stopped
     networks:
     - backend
+    - source-id
+    - source-send
     volumes: []
     logging:
       driver: json-file
@@ -276,6 +282,12 @@ networks:
   backend:
     internal: true
   frontend: {}
+  source-id:
+    name: ${OBSERVE_ID_NETWORK:-diddi-observe-id-local}
+    external: ${OBSERVE_SOURCE_NETWORKS_EXTERNAL:-false}
+  source-send:
+    name: ${OBSERVE_SEND_NETWORK:-diddi-observe-send-local}
+    external: ${OBSERVE_SOURCE_NETWORKS_EXTERNAL:-false}
 volumes:
   grafana-data: {}
   prometheus-data: {}

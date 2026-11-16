@@ -48,3 +48,14 @@ FROM python:3.13.9-alpine AS synthetic
 COPY app/pilot.py /app/pilot.py
 USER 65534:65534
 CMD ["python", "/app/pilot.py"]
+
+FROM prometheus AS onboarding-prometheus
+COPY config/onboarding/prometheus.yaml /etc/prometheus/prometheus.yml
+FROM alloy AS onboarding-alloy
+COPY config/onboarding/config.alloy /etc/alloy/config.alloy
+FROM gateway AS onboarding-gateway
+COPY config/onboarding/nginx.conf /etc/nginx/nginx.conf
+FROM registry AS onboarding-registry
+COPY config/onboarding/services.json /registry/services.json
+FROM init-storage AS onboarding-init-storage
+COPY config/onboarding/services.json /registry/services.json

@@ -1,0 +1,400 @@
+{
+  "schema_version": 1,
+  "services": [
+    {
+      "id": "diddifree-id",
+      "name": "diddifree-id",
+      "environment": "staging",
+      "deployment_id": "diddifree-id-staging",
+      "component": "api",
+      "owner": "DiddiFreeID team",
+      "state": "inventoried",
+      "evidence": [],
+      "metrics": {
+        "enabled": false,
+        "auth": "bearer",
+        "known_path": "/metrics",
+        "url": "http://diddi-auth-app-1:8000/metrics",
+        "isolated_network": true
+      },
+      "otlp": {
+        "enabled": true
+      },
+      "logs": {
+        "enabled": false
+      },
+      "health": {
+        "enabled": true,
+        "url": "http://diddi-auth-app-1:8000/health/ready",
+        "isolated_network": true
+      }
+    },
+    {
+      "id": "diddigo",
+      "name": "diddigo",
+      "environment": "staging",
+      "deployment_id": "diddigo-staging",
+      "component": "api",
+      "owner": "",
+      "state": "inventoried",
+      "evidence": [],
+      "metrics": {
+        "enabled": false,
+        "auth": "bearer",
+        "known_path": "/metrics"
+      },
+      "otlp": {
+        "enabled": false
+      },
+      "logs": {
+        "enabled": false
+      },
+      "health": {
+        "enabled": false
+      }
+    },
+    {
+      "id": "diddisend",
+      "name": "diddisend",
+      "environment": "staging",
+      "deployment_id": "diddisend-staging",
+      "component": "api",
+      "owner": "DiddiSend team",
+      "state": "inventoried",
+      "evidence": [],
+      "metrics": {
+        "enabled": false,
+        "auth": "bearer",
+        "known_path": "/internal/metrics",
+        "url": "http://diddisend-backend-api-1:8000/internal/metrics",
+        "isolated_network": true
+      },
+      "otlp": {
+        "enabled": true
+      },
+      "logs": {
+        "enabled": false
+      },
+      "health": {
+        "enabled": true,
+        "url": "http://diddisend-backend-api-1:8000/ready",
+        "isolated_network": true
+      }
+    },
+    {
+      "id": "diddipay",
+      "name": "diddipay",
+      "environment": "staging",
+      "deployment_id": "diddipay-staging",
+      "component": "api",
+      "owner": "",
+      "state": "inventoried",
+      "evidence": [],
+      "metrics": {
+        "enabled": false,
+        "auth": "bearer",
+        "known_path": "/internal/metrics"
+      },
+      "otlp": {
+        "enabled": false
+      },
+      "logs": {
+        "enabled": false
+      },
+      "health": {
+        "enabled": false
+      }
+    },
+    {
+      "id": "diddicomms",
+      "name": "diddicomms",
+      "environment": "staging",
+      "deployment_id": "diddicomms-staging",
+      "component": "api",
+      "owner": "",
+      "state": "inventoried",
+      "evidence": [],
+      "metrics": {
+        "enabled": false,
+        "auth": "bearer",
+        "known_path": "/internal/metrics"
+      },
+      "otlp": {
+        "enabled": false
+      },
+      "logs": {
+        "enabled": false
+      },
+      "health": {
+        "enabled": false
+      }
+    },
+    {
+      "id": "diddifiles",
+      "name": "diddifiles",
+      "environment": "staging",
+      "deployment_id": "diddifiles-staging",
+      "component": "api",
+      "owner": "",
+      "state": "inventoried",
+      "evidence": [],
+      "metrics": {
+        "enabled": false,
+        "auth": "bearer",
+        "known_path": "/metrics"
+      },
+      "otlp": {
+        "enabled": false
+      },
+      "logs": {
+        "enabled": false
+      },
+      "health": {
+        "enabled": false
+      }
+    },
+    {
+      "id": "diddifood",
+      "name": "diddifood",
+      "environment": "staging",
+      "deployment_id": "diddifood-staging",
+      "component": "api",
+      "owner": "",
+      "state": "inventoried",
+      "evidence": [],
+      "metrics": {
+        "enabled": false,
+        "auth": "bearer",
+        "known_path": "/metrics"
+      },
+      "otlp": {
+        "enabled": false
+      },
+      "logs": {
+        "enabled": false
+      },
+      "health": {
+        "enabled": false
+      }
+    },
+    {
+      "id": "diddisupport",
+      "name": "diddisupport",
+      "environment": "staging",
+      "deployment_id": "diddisupport-staging",
+      "component": "api",
+      "owner": "",
+      "state": "inventoried",
+      "evidence": [],
+      "metrics": {
+        "enabled": false,
+        "auth": "bearer",
+        "known_path": ""
+      },
+      "otlp": {
+        "enabled": false
+      },
+      "logs": {
+        "enabled": false
+      },
+      "health": {
+        "enabled": false
+      }
+    },
+    {
+      "id": "diddimap",
+      "name": "diddimap",
+      "environment": "staging",
+      "deployment_id": "diddimap-staging",
+      "component": "api",
+      "owner": "",
+      "state": "inventoried",
+      "evidence": [],
+      "metrics": {
+        "enabled": false,
+        "auth": "bearer",
+        "known_path": ""
+      },
+      "otlp": {
+        "enabled": false
+      },
+      "logs": {
+        "enabled": false
+      },
+      "health": {
+        "enabled": false
+      }
+    },
+    {
+      "id": "diddi-recensement",
+      "name": "diddi-recensement",
+      "environment": "staging",
+      "deployment_id": "diddi-recensement-staging",
+      "component": "api",
+      "owner": "",
+      "state": "inventoried",
+      "evidence": [],
+      "metrics": {
+        "enabled": false,
+        "auth": "bearer",
+        "known_path": ""
+      },
+      "otlp": {
+        "enabled": false
+      },
+      "logs": {
+        "enabled": false
+      },
+      "health": {
+        "enabled": false
+      }
+    },
+    {
+      "id": "diddifree-backoffice",
+      "name": "diddifree-backoffice",
+      "environment": "staging",
+      "deployment_id": "diddifree-backoffice-staging",
+      "component": "api",
+      "owner": "",
+      "state": "inventoried",
+      "evidence": [],
+      "metrics": {
+        "enabled": false,
+        "auth": "bearer",
+        "known_path": ""
+      },
+      "otlp": {
+        "enabled": false
+      },
+      "logs": {
+        "enabled": false
+      },
+      "health": {
+        "enabled": false
+      }
+    },
+    {
+      "id": "diddifree-pilotage",
+      "name": "diddifree-pilotage",
+      "environment": "staging",
+      "deployment_id": "diddifree-pilotage-staging",
+      "component": "api",
+      "owner": "",
+      "state": "inventoried",
+      "evidence": [],
+      "metrics": {
+        "enabled": false,
+        "auth": "bearer",
+        "known_path": ""
+      },
+      "otlp": {
+        "enabled": false
+      },
+      "logs": {
+        "enabled": false
+      },
+      "health": {
+        "enabled": false
+      }
+    },
+    {
+      "id": "diddifood-radar",
+      "name": "diddifood-radar",
+      "environment": "staging",
+      "deployment_id": "diddifood-radar-staging",
+      "component": "api",
+      "owner": "",
+      "state": "inventoried",
+      "evidence": [],
+      "metrics": {
+        "enabled": false,
+        "auth": "bearer",
+        "known_path": ""
+      },
+      "otlp": {
+        "enabled": false
+      },
+      "logs": {
+        "enabled": false
+      },
+      "health": {
+        "enabled": false
+      }
+    },
+    {
+      "id": "diddi-review-worker",
+      "name": "diddi-review-worker",
+      "environment": "staging",
+      "deployment_id": "diddi-review-worker-staging",
+      "component": "api",
+      "owner": "",
+      "state": "inventoried",
+      "evidence": [],
+      "metrics": {
+        "enabled": false,
+        "auth": "bearer",
+        "known_path": ""
+      },
+      "otlp": {
+        "enabled": false
+      },
+      "logs": {
+        "enabled": false
+      },
+      "health": {
+        "enabled": false
+      }
+    },
+    {
+      "id": "diddifree-radar",
+      "name": "diddifree-radar",
+      "environment": "unknown",
+      "deployment_id": "diddifree-radar-staging",
+      "component": "web",
+      "owner": "",
+      "state": "inventoried",
+      "evidence": [],
+      "metrics": {
+        "enabled": false,
+        "auth": "bearer",
+        "known_path": ""
+      },
+      "otlp": {
+        "enabled": false
+      },
+      "logs": {
+        "enabled": false
+      },
+      "health": {
+        "enabled": false
+      }
+    },
+    {
+      "id": "synthetic",
+      "name": "synthetic",
+      "environment": "test",
+      "deployment_id": "observe-pilot",
+      "component": "api",
+      "owner": "observability-test",
+      "state": "inventoried",
+      "evidence": [],
+      "metrics": {
+        "enabled": true,
+        "auth": "bearer",
+        "url": "http://synthetic:8000/metrics",
+        "isolated_network": true
+      },
+      "otlp": {
+        "enabled": true
+      },
+      "logs": {
+        "enabled": true
+      },
+      "health": {
+        "enabled": true,
+        "url": "http://synthetic:8000/ready",
+        "isolated_network": true
+      }
+    }
+  ]
+}
