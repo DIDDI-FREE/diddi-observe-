@@ -29,12 +29,18 @@ def outputs():
     pilot = source['config/synthetic/nginx.conf']
     location = pilot[pilot.index('    location = /synthetic-test'):pilot.index('    location /otlp/')]
     nginx = nginx.replace('    location /otlp/', location + '    location /otlp/')
-    return {
+    result = {
         'config/onboarding/services.json': json.dumps(registry, indent=2) + '\n',
         'config/onboarding/prometheus.yaml': yaml.safe_dump(render.prometheus(registry), sort_keys=False),
         'config/onboarding/config.alloy': render.alloy(registry),
         'config/onboarding/nginx.conf': nginx,
     }
+    # Shared source networks also contain services named alloy/prometheus/etc.
+    # Qualify central targets for this fixed-name remote deployment.
+    for path in ('config/onboarding/nginx.conf', 'config/onboarding/prometheus.yaml'):
+        for name in ('alloy','grafana','prometheus','loki','tempo','registry','blackbox','synthetic'):
+            result[path] = result[path].replace(name + ':', 'diddi-observe-' + name + '-1:')
+    return result
 
 if __name__ == '__main__':
     for name, content in outputs().items():

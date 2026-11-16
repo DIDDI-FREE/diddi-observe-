@@ -23,6 +23,9 @@ class OnboardingTests(unittest.TestCase):
             elif s['id'] != 'synthetic':
                 self.assertFalse(any(s[k]['enabled'] for k in ('otlp','health','metrics','logs')))
         self.assertEqual(output['config/onboarding/nginx.conf'].count('location = /synthetic-test'), 1)
+        self.assertIn('http://diddi-observe-alloy-1:4402', output['config/onboarding/nginx.conf'])
+        self.assertNotIn('http://alloy:', output['config/onboarding/nginx.conf'])
+        self.assertIn('diddi-observe-blackbox-1:9115', output['config/onboarding/prometheus.yaml'])
 
     def test_network_scope(self):
         cfg = yaml.safe_load(portainer.render())

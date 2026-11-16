@@ -16,7 +16,7 @@ BASE=os.getenv('OBSERVE_TEST_URL','https://localhost:19443')
 REMOTE = bool(os.getenv('OBSERVE_AUTH_FILE'))
 AUTH = json.loads(Path(os.environ['OBSERVE_AUTH_FILE']).read_text()) if REMOTE else {}
 INSECURE = os.getenv('OBSERVE_INSECURE_TLS') == '1'
-CTX=ssl._create_unverified_context() if INSECURE else ssl.create_default_context(cafile=str(ROOT/'secrets/tls.crt'))
+CTX=ssl._create_unverified_context() if INSECURE else ssl.create_default_context(cafile=os.getenv('OBSERVE_CA_FILE',str(ROOT/'secrets/tls.crt')))
 ADMIN='Basic '+base64.b64encode(('admin:'+(AUTH['admin'] if REMOTE else (ROOT/'secrets/grafana_admin').read_text().strip())).encode()).decode()
 INGEST='Basic '+base64.b64encode(('synthetic:'+(AUTH['synthetic'] if REMOTE else (ROOT/'secrets/synthetic.password').read_text().strip())).encode()).decode()
 
