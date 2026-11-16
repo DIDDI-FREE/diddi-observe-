@@ -1,5 +1,6 @@
 """Prepare TLS and per-source credentials from runtime environment, never build args."""
 import datetime
+import base64
 import ipaddress
 import json
 import os
@@ -21,6 +22,14 @@ def main():
     metrics.mkdir(exist_ok=True)
     cert_path, key_path = gateway / 'tls.crt', gateway / 'tls.key'
     cert, key = os.getenv('TLS_CERT_PEM', ''), os.getenv('TLS_KEY_PEM', '')
+    cert_b64, key_b64 = os.getenv('TLS_CERT_B64', ''), os.getenv('TLS_KEY_B64', '')
+    if cert_b64 or key_b64:
+        if cert or key:
+            raise ValueError('Use either PEM or base64 TLS input, not both')
+        if not cert_b64 or not key_b64:
+            raise ValueError('TLS_CERT_B64 and TLS_KEY_B64 must be provided together')
+        cert = base64.b64decode(cert_b64, validate=True).decode('ascii')
+        key = base64.b64decode(key_b64, validate=True).decode('ascii')
     if bool(cert) != bool(key):
         raise ValueError('TLS_CERT_PEM and TLS_KEY_PEM must be provided together')
     if cert:

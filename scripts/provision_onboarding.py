@@ -60,7 +60,7 @@ def main():
             module.update(DIDDI_DEPLOYMENT_ID='diddifree-id-staging', METRICS_AUTH_TOKEN=tokens[name], OTEL_ENABLED='true', OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=base+'/v1/traces', OTEL_EXPORTER_OTLP_CERTIFICATE='/etc/diddi-observe/ca.pem')
         (DEST/(name+'.env')).write_text(''.join(k+'='+v+'\n' for k,v in module.items()), newline='\n')
     values.update(OTLP_PASSWORDS_JSON=json.dumps(passwords), METRICS_TOKENS_JSON=json.dumps(tokens),
-                  TLS_CERT_PEM=cert.public_bytes(serialization.Encoding.PEM).decode(), TLS_KEY_PEM=private(key),
+                  TLS_CERT_B64=base64.b64encode(cert.public_bytes(serialization.Encoding.PEM)).decode(), TLS_KEY_B64=base64.b64encode(private(key).encode()).decode(),
                   OBSERVE_PILOT_PREFIX='onboarding-', COMPOSE_PROFILES='synthetic',
                   OBSERVE_SOURCE_NETWORKS_EXTERNAL='true', OBSERVE_ID_NETWORK='diddi-auth_default', OBSERVE_SEND_NETWORK='diddisend-backend_default')
     (DEST/'central-env.json').write_text(json.dumps([dict(name=k,value=v) for k,v in values.items()]))

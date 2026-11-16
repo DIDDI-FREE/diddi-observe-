@@ -245,6 +245,8 @@ services:
       OBSERVE_TLS_HOST: ${OBSERVE_TLS_HOST:-localhost}
       TLS_CERT_PEM: ${TLS_CERT_PEM:-}
       TLS_KEY_PEM: ${TLS_KEY_PEM:-}
+      TLS_CERT_B64: ${TLS_CERT_B64:-}
+      TLS_KEY_B64: ${TLS_KEY_B64:-}
       OTLP_PASSWORDS_JSON: ${OTLP_PASSWORDS_JSON:-{}}
       METRICS_TOKENS_JSON: ${METRICS_TOKENS_JSON:-{}}
     tmpfs:

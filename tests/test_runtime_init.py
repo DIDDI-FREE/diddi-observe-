@@ -1,4 +1,5 @@
 import importlib.util
+import base64
 import json
 import os
 from pathlib import Path
@@ -29,6 +30,7 @@ class RuntimeTests(unittest.TestCase):
         self.env = patch.dict(os.environ, {'OTLP_PASSWORDS_JSON': '{"demo":"unit-password"}',
                                          'METRICS_TOKENS_JSON': '{"demo":"unit-token"}',
                                          'TLS_CERT_PEM': '', 'TLS_KEY_PEM': '',
+                                         'TLS_CERT_B64': '', 'TLS_KEY_B64': '',
                                          'OBSERVE_TLS_HOST': 'localhost'})
         self.env.start()
         self.addCleanup(self.env.stop)
@@ -44,6 +46,18 @@ class RuntimeTests(unittest.TestCase):
 
     def test_incomplete_tls_input_rejected(self):
         os.environ['TLS_CERT_PEM'] = 'incomplete'
+        with self.assertRaisesRegex(ValueError, 'provided together'):
+            runtime.main()
+
+    def test_base64_tls_roundtrip(self):
+        runtime.main()
+        cert = (self.root / 'gateway-secret/tls.crt').read_bytes()
+        key = (self.root / 'gateway-secret/tls.key').read_bytes()
+        os.environ['TLS_CERT_B64'] = base64.b64encode(cert).decode()
+        os.environ['TLS_KEY_B64'] = base64.b64encode(key).decode()
+        runtime.main()
+        self.assertEqual((self.root / 'gateway-secret/tls.crt').read_bytes(), cert)
+        os.environ['TLS_KEY_B64'] = ''
         with self.assertRaisesRegex(ValueError, 'provided together'):
             runtime.main()
 
