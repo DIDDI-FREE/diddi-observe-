@@ -19,7 +19,7 @@ Statut : **non connecté**. Inspection en lecture seule de la stack `diddi-auth`
 >
 > Après confirmation de l'activation de la route centrale, configure `OTEL_ENABLED=true`, `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=https://169.58.70.37:19443/otlp/diddifree-id/v1/traces` et `OTEL_EXPORTER_OTLP_HEADERS=Authorization=Basic <base64 de diddifree-id:secret-ingestion>`. Le secret d'ingestion sera fourni côté observabilité et doit être différent du token métriques. La route n'est pas encore activée. Le certificat central est actuellement autosigné : installer sa confiance et vérifier son identité, sans désactiver TLS.
 >
-> Désactive `OTP_LOG_PLAINTEXT` avant toute collecte centrale. Teste que les codes OTP et destinataires ne sont plus exposés dans les événements collectés. Ne transfère pas rétroactivement des logs contenant ces données.
+> Décision utilisateur confirmée le 16 novembre : conserver l'exception temporaire `OTP_LOG_PLAINTEXT` et documenter son interrupteur. Ce choix ne bloque pas les métriques et traces. Préciser la portée des événements exportés vers Loki ; aucun transfert rétroactif de logs n'est prévu par la plateforme.
 >
 > Fournis un transport de logs compatible : export OTLP HTTP vers `/otlp/diddifree-id/v1/logs`, ou fichier JSON rotatif partagé en lecture seule avec le collecteur. La collecte stdout locale existante ne prouve pas l'arrivée dans le Loki central. Aucun socket Docker global ne doit être ajouté à DiddiObserve.
 >

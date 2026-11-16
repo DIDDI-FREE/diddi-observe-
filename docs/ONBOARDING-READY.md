@@ -34,3 +34,16 @@ Les routes OTLP logs sont disponibles ; aucun montage de logs historiques ni acc
 `OBSERVE_PILOT_PREFIX=onboarding-`, `COMPOSE_PROFILES=synthetic`, `OBSERVE_SOURCE_NETWORKS_EXTERNAL=true`, `OBSERVE_ID_NETWORK=diddi-auth_default`, `OBSERVE_SEND_NETWORK=diddisend-backend_default` sélectionnent le profil distant. Les valeurs TLS et dictionnaires de secrets sont installés à l'exécution par Portainer, jamais dans les images.
 
 Le profil par défaut garde le registre réel désactivé ; sans variables distantes, le Compose Portainer crée deux réseaux locaux de test. Les changements de profil doivent conserver les volumes. Pour revenir au pilote seul, rétablir le commit et les variables sauvegardés dans le dossier de secrets ; ne pas supprimer les données Grafana, Loki, Prometheus ou Tempo.
+
+Le profil `onboarding-` utilise les noms de conteneurs complets `diddi-observe-<service>-1` pour éviter les collisions avec les services Alloy/Prometheus déjà présents chez les producteurs. Ce profil distant suppose donc le nom de projet Compose `diddi-observe`.
+
+## Vérification du 16 novembre 2026
+
+- Déploiement confirmé par Portainer au commit `b95fc8760c1ce3386b501c848aa92454582e300b` ; neuf services centraux en fonctionnement et initialisation terminée avec code 0.
+- Douze contrôles des routes OTLP : quatre acceptations avec le bon identifiant, quatre refus sans authentification et quatre refus avec l'identifiant de l'autre service. Enveloppes vides uniquement : ce test ne simule pas des événements métier des producteurs.
+- Vérification TLS stricte réussie sur l'IP publique et vérification du nom privé dans le certificat (TLS 1.3). Aucun contournement de validation du certificat.
+- Pilote synthétique complet réussi à 15:10:55 UTC : métriques, logs fichier et OTLP, trace Tempo, identité imposée, filtrage d'attributs et corrélation. Trace : `318a8d255c6814ae08eaa388c2d5ab28`.
+- Six dashboards provisionnés et quatre règles évaluées sans erreur. Les dix cibles de scrape sont accessibles, dont les six composants centraux.
+- Readiness privée ID à `1`. Readiness Send à `0`, API indiquée `unhealthy` par Docker ; alerte `readiness-down` déclenchée pour `diddisend`. Aucune modification de Send effectuée. Réception de notifications locales confirmée dans le registre ; aucun canal externe configuré.
+
+Rapports locaux sans secrets : `test-results/onboarding-verification.json` et `test-results/smoke.json`. L'arrivée de véritables logs/traces des deux producteurs et leurs métriques reste à valider après installation des paramètres par chaque équipe. Les dossiers de secrets sont exclus de Git et du contexte Docker ; les accès Windows au dossier de remise sont limités à l'utilisateur courant et SYSTEM.
