@@ -12,6 +12,10 @@ Renseigner `GRAFANA_ADMIN_PASSWORD` dans les variables Portainer. Pour l’accè
 
 Un [profil synthétique séparé](docs/SYNTHETIC-PILOT.md), `compose.portainer.synthetic.yaml`, permet de valider la chaîne sur le serveur sans activer les modules réels.
 
+## Contrat commun des modules
+
+Le [protocole DIDDI Observability v1.1.0](DIDDI-Observability-v1.md) définit les logs, métriques, traces et responsabilités. Le [guide de logs sur fichiers partagés](docs/LOGGING-FILES.md) fournit les variables et exemples Compose communs à tous les modules, avec volumes distincts et lecture seule côté Alloy. Les transports déjà validés peuvent être conservés ; la publication du protocole ne déploie aucune modification des producteurs.
+
 ## Démarrage local
 
 Prérequis : Docker Engine + Compose v2 ou supérieur, Python 3.11+, environ 6 Go de RAM disponibles pour la stack et de l’espace pour les images/volumes.

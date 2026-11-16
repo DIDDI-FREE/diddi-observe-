@@ -1,6 +1,6 @@
 # Raccorder un service
 
-Le protocole commun est `DIDDI-Observability-v1.md`. Chaque module fournit son manifeste, son propriétaire et les preuves locales avant raccordement. Le registre fourni n’autorise aucune connexion aux services audités.
+Le protocole commun est [DIDDI Observability v1.1.0](../DIDDI-Observability-v1.md). Chaque module fournit son manifeste, son propriétaire et les preuves locales avant raccordement. Le registre de base garde les sources réelles désactivées ; les activations autorisées du profil central sont décrites dans [ONBOARDING-READY.md](ONBOARDING-READY.md).
 
 ## Inscription
 
@@ -11,6 +11,8 @@ Modifier une entrée de `registry/services.json` ou en créer une pour chaque co
 - `otlp.enabled=true` crée deux routes HTTPS exactes : `/otlp/<id>/v1/traces` et `/otlp/<id>/v1/logs`.
 - `logs.enabled=true` active la lecture de `/var/log/inputs/<id>/*.log`, montée depuis `runtime/inputs/<id>`. Cette source peut être remplacée par un montage **en lecture seule**, explicitement autorisé, de fichiers applicatifs JSON. Les logs Docker bruts multiplexés ou les enveloppes json-file ne sont pas des logs applicatifs directement compatibles.
 
+Pour le profil commun **fichier JSON rotatif partagé**, suivre [LOGGING-FILES.md](LOGGING-FILES.md) : le module écrit dans un volume dédié, Alloy monte ce même volume externe en lecture seule. Le chemin standard `observability.jsonl` exige une adaptation explicite du motif historique `*.log` dans le générateur ; activer seulement `logs.enabled` ne suffit pas. Le montage fichier ID n'est pas encore déployé par la publication de cette convention. Les traces OTLP restent indépendantes ; ne pas doubler la collecte des mêmes logs par fichier et OTLP.
+
 Puis :
 
 ```sh
@@ -19,7 +21,7 @@ python scripts/bootstrap.py
 python -m unittest discover -s tests -v
 ```
 
-Le bootstrap génère des identifiants d’ingestion, mais **n’invente jamais un token de scrape pour un service existant**. Fournir ce token via son propriétaire. Les fichiers de mots de passe et de secrets ne doivent jamais être joints à un ticket ou committés.
+Le bootstrap génère des identifiants d’ingestion, mais **ne suppose jamais qu'un nouveau token de scrape est déjà installé dans un service existant**. La plateforme peut préparer un token dédié et le remettre au propriétaire ; celui-ci l'installe, puis confirme avant activation du scrape. Les secrets centraux et la confiance TLS d'ID/Send sont décrits dans [ONBOARDING-READY.md](ONBOARDING-READY.md). Les fichiers de mots de passe et de secrets ne doivent jamais être joints à un ticket ou committés.
 
 Le test `test_real_services_disabled` protège le profil initial : lors d’une activation réelle autorisée, adapter ce test à un registre de référence désactivé et ajouter un test spécifique des cibles autorisées. Ne pas supprimer simplement le garde-fou.
 
