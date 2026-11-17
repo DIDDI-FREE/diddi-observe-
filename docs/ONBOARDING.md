@@ -1,6 +1,6 @@
 # Raccorder un service
 
-Le protocole commun est [DIDDI Observability v1.1.0](../DIDDI-Observability-v1.md). Chaque module fournit son manifeste, son propriétaire et les preuves locales avant raccordement. Le registre de base garde les sources réelles désactivées ; les activations autorisées du profil central sont décrites dans [ONBOARDING-READY.md](ONBOARDING-READY.md).
+Le protocole commun est [DIDDI Observability v1.1.1](../DIDDI-Observability-v1.md). Chaque module fournit son manifeste, son propriétaire et les preuves locales avant raccordement. Le registre de base garde les sources réelles désactivées ; les activations autorisées du profil central sont décrites dans [ONBOARDING-READY.md](ONBOARDING-READY.md).
 
 ## Inscription
 

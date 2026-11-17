@@ -1,0 +1,55 @@
+{
+  "handoff_version": "1.0.0",
+  "protocol_version": "1.1.1",
+  "log_schema_version": "1.0.0",
+  "service": "diddisend",
+  "environment": "staging",
+  "deployment_id": "diddisend-staging",
+  "status": "pending_public_ingress",
+  "owner_contact": null,
+  "deployed_sha": null,
+  "ingress": {
+    "base_url": null,
+    "proxy": "Nginx Proxy Manager",
+    "public_ingress_verified": false,
+    "tls": {
+      "verify": true,
+      "trust": "system-public-ca",
+      "custom_ca_required": false,
+      "client_certificate_required": false
+    },
+    "traces_path": "/otlp/diddisend/v1/traces",
+    "logs_path": "/otlp/diddisend/v1/logs"
+  },
+  "metrics": {
+    "path": "/internal/metrics",
+    "transport": "private-network-scrape",
+    "auth": "bearer",
+    "scrape_enabled": false
+  },
+  "logs": {
+    "transport": "otlp-http",
+    "volume_name": null,
+    "producer_path": null,
+    "collector_mount_mode": null,
+    "central_collection_verified": false
+  },
+  "secret_file_reference": "secrets/onboarding/diddisend.env",
+  "environment_pending_ingress": {
+    "ENVIRONMENT": "staging",
+    "OTEL_EXPORTER_OTLP_HEADERS": "",
+    "DEPLOYMENT_ID": "diddisend-staging",
+    "METRICS_BEARER_TOKEN": "",
+    "OTEL_EXPORTER_OTLP_ENDPOINT": "",
+    "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT": "",
+    "OTEL_LOGS_ENABLED": "false",
+    "OTEL_EXPORTER_OTLP_CA_FILE": "",
+    "OTEL_EXPORTER_OTLP_CLIENT_CERTIFICATE_FILE": "",
+    "OTEL_EXPORTER_OTLP_CLIENT_KEY_FILE": ""
+  },
+  "notes": [
+    "No secrets in this contract. Empty secret values are placeholders, not instructions to erase installed credentials.",
+    "An empty OTLP endpoint is intentional until the public domain is configured and tested.",
+    "No change to business logic, log schema, metric names or OTP policy."
+  ]
+}

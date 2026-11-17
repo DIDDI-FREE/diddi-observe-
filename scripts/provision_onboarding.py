@@ -4,6 +4,7 @@ import datetime as dt
 import ipaddress
 import json
 import secrets
+from team_handoff import settings
 from pathlib import Path
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
@@ -51,13 +52,10 @@ def main():
     for name in ('diddisend','diddifree-id'):
         passwords[name] = secrets.token_urlsafe(36)
         tokens[name] = secrets.token_urlsafe(36)
-        base = 'https://diddi-observe-gateway-1:8443/otlp/' + name
         header = 'Authorization=Basic '+base64.b64encode((name+':'+passwords[name]).encode()).decode()
-        module = dict(ENVIRONMENT='staging', OTEL_EXPORTER_OTLP_HEADERS=header)
-        if name == 'diddisend':
-            module.update(DEPLOYMENT_ID='diddisend-staging', METRICS_BEARER_TOKEN=tokens[name], OTEL_EXPORTER_OTLP_ENDPOINT=base, OTEL_EXPORTER_OTLP_LOGS_ENDPOINT=base+'/v1/logs', OTEL_LOGS_ENABLED='true', OTEL_EXPORTER_OTLP_CA_FILE='/etc/diddi-observe/ca.pem')
-        else:
-            module.update(DIDDI_DEPLOYMENT_ID='diddifree-id-staging', METRICS_AUTH_TOKEN=tokens[name], OTEL_ENABLED='true', OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=base+'/v1/traces', OTEL_EXPORTER_OTLP_CERTIFICATE='/etc/diddi-observe/ca.pem')
+        module = settings(name)
+        module['OTEL_EXPORTER_OTLP_HEADERS'] = header
+        module['METRICS_BEARER_TOKEN' if name=='diddisend' else 'METRICS_AUTH_TOKEN'] = tokens[name]
         (DEST/(name+'.env')).write_text(''.join(k+'='+v+'\n' for k,v in module.items()), newline='\n')
     values.update(OTLP_PASSWORDS_JSON=json.dumps(passwords), METRICS_TOKENS_JSON=json.dumps(tokens),
                   TLS_CERT_B64=base64.b64encode(cert.public_bytes(serialization.Encoding.PEM)).decode(), TLS_KEY_B64=base64.b64encode(private(key).encode()).decode(),

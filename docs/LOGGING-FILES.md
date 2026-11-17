@@ -1,6 +1,6 @@
 # Logs JSON sur volume partagé — guide commun v1.1
 
-Référence normative : [DIDDI Observability v1.1.0](../DIDDI-Observability-v1.md), sections 4.3 à 4.5. Ce guide prépare la configuration ; il ne modifie aucune stack.
+Référence normative : [DIDDI Observability v1.1.1](../DIDDI-Observability-v1.md), sections 4.3 à 4.5. Ce guide prépare la configuration ; il ne modifie aucune stack.
 
 ## Ce qui est commun et ce qui change
 

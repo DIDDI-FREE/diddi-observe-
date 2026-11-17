@@ -1,0 +1,54 @@
+{
+  "handoff_version": "1.0.0",
+  "protocol_version": "1.1.1",
+  "log_schema_version": "1.0.0",
+  "service": "diddifree-id",
+  "environment": "staging",
+  "deployment_id": "diddifree-id-staging",
+  "status": "pending_public_ingress",
+  "owner_contact": null,
+  "deployed_sha": null,
+  "ingress": {
+    "base_url": null,
+    "proxy": "Nginx Proxy Manager",
+    "public_ingress_verified": false,
+    "tls": {
+      "verify": true,
+      "trust": "system-public-ca",
+      "custom_ca_required": false,
+      "client_certificate_required": false
+    },
+    "traces_path": "/otlp/diddifree-id/v1/traces",
+    "logs_path": "/otlp/diddifree-id/v1/logs"
+  },
+  "metrics": {
+    "path": "/metrics",
+    "transport": "private-network-scrape",
+    "auth": "bearer",
+    "scrape_enabled": false
+  },
+  "logs": {
+    "transport": "file-jsonl",
+    "volume_name": "diddifree-id-observability-logs-staging",
+    "producer_path": "/var/log/diddifree/observability.jsonl",
+    "collector_mount_mode": "read-only",
+    "central_collection_verified": false
+  },
+  "secret_file_reference": "secrets/onboarding/diddifree-id.env",
+  "environment_pending_ingress": {
+    "ENVIRONMENT": "staging",
+    "OTEL_EXPORTER_OTLP_HEADERS": "",
+    "DIDDI_DEPLOYMENT_ID": "diddifree-id-staging",
+    "METRICS_AUTH_TOKEN": "",
+    "OTEL_ENABLED": "false",
+    "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": "",
+    "OTEL_EXPORTER_OTLP_CERTIFICATE": "",
+    "OBSERVABILITY_LOG_FILE": "/var/log/diddifree/observability.jsonl",
+    "OBSERVABILITY_LOG_VOLUME_NAME": "diddifree-id-observability-logs-staging"
+  },
+  "notes": [
+    "No secrets in this contract. Empty secret values are placeholders, not instructions to erase installed credentials.",
+    "An empty OTLP endpoint is intentional until the public domain is configured and tested.",
+    "No change to business logic, log schema, metric names or OTP policy."
+  ]
+}

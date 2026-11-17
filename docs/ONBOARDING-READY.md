@@ -2,26 +2,23 @@
 
 Ce profil prépare uniquement `diddisend` et `diddifree-id` en staging. Les routes sont provisionnées ; cela ne certifie pas que les producteurs exportent leurs données. Le registre reste `inventoried`. Le pilote synthétique reste disponible.
 
-## Adresses privées
+## Remise aux équipes : HTTPS public, sans CA privée
 
-| Service | Traces OTLP HTTP | Logs OTLP HTTP |
-| --- | --- | --- |
-| DiddiSend | `https://diddi-observe-gateway-1:8443/otlp/diddisend/v1/traces` | `https://diddi-observe-gateway-1:8443/otlp/diddisend/v1/logs` |
-| DiddiFree ID | `https://diddi-observe-gateway-1:8443/otlp/diddifree-id/v1/traces` | `https://diddi-observe-gateway-1:8443/otlp/diddifree-id/v1/logs` |
+**Décision du 17 novembre 2026 :** utiliser le HTTPS public géré par Nginx Proxy Manager. Aucun fichier de CA privée ni certificat client à installer dans ID ou Send. Les clients conservent la vérification TLS avec leur magasin standard de confiance.
 
-La passerelle rejoint les réseaux existants `diddisend-backend_default` et `diddi-auth_default`. Seuls la passerelle, Prometheus et Blackbox rejoignent ces réseaux. Les autres backends d'observabilité restent sur leur réseau interne ; aucun nouveau port hôte n'est publié. Ces réseaux partagés ne constituent pas une isolation par service : l'authentification reste obligatoire.
+Le domaine d'ingestion n'est pas encore défini/configuré dans cette remise. Les routes centrales existent, mais leur publication via NPM reste à réaliser et vérifier. Les fichiers JSON utilisent une URL nulle ; les fichiers `.env` gardent les exports OTLP désactivés jusqu'à confirmation du domaine.
 
-Les URLs publiques temporaires utilisent `https://169.58.70.37:19443` avec les mêmes chemins. Préférer les URLs privées depuis les modules. Ne pas exposer Alloy directement.
+- [Migration précise de DiddiFree ID et DiddiSend](teams/MIGRATION-V1.md).
+- [Contrat de remise ID, sans secrets](teams/diddifree-id.json).
+- [Contrat de remise Send, sans secrets](teams/diddisend.json).
 
-## Secrets et TLS
+Deux secrets indépendants par module sont conservés : identifiants Basic d'ingestion et token Bearer de scrape. Les fichiers locaux `secrets/onboarding/diddifree-id.env` et `secrets/onboarding/diddisend.env` ont été ajustés sans rotation des secrets et sans afficher leurs valeurs. Ne transmettre que le fichier du module concerné, par canal sécurisé ; ne pas transmettre les fichiers d'administration centrale ou les clés privées.
 
-Deux secrets indépendants par module : un mot de passe d'ingestion Basic et un token Bearer de scrape. Ils ne sont pas dérivés de secrets métier. Les paramètres à remettre séparément aux équipes sont générés localement dans `secrets/onboarding/diddisend.env` et `secrets/onboarding/diddifree-id.env`, exclus de Git. Ne pas transmettre `central-env.json`, `previous-env.json`, `auth.json` ou les clés privées aux équipes.
+Les réseaux privés déjà raccordés servent aux probes et futurs scrapes. Les équipes utiliseront l'URL HTTPS publique confirmée pour OTLP ; elles ne doivent plus copier le nom Docker ou l'IP directe du déploiement historique comme nouvelle URL d'export.
 
-Le certificat public de confiance est [diddi-observe-staging-ca.pem](certs/diddi-observe-staging-ca.pem). Empreinte SHA-256 : `97f51b7163ee2d970f0be0634f2bff25475620fcf4092eb4156c8ba04e58f128`. Le certificat serveur couvre `diddi-observe-gateway-1` et `169.58.70.37` et expire le **14 février 2027 à 15:04 UTC**. La CA expire un an après sa création. Renouveler le serveur avant expiration ; sa clé et la clé CA restent côté plateforme.
+## Historique TLS central du 16 novembre — pas un prérequis équipe
 
-Chaque équipe doit intégrer ce certificat public dans son image ou un volume de configuration, à `/etc/diddi-observe/ca.pem`, puis utiliser la variable de confiance indiquée dans son fichier de paramètres. La vérification TLS doit rester activée. Importer le certificat dans le navigateur est une opération distincte de la configuration des SDK.
-
-Les variables Portainer doivent être référencées dans `services.<module>.environment` pour atteindre le conteneur. Ajouter le fichier de confiance et déployer le module reste la responsabilité de son équipe.
+Le certificat privé existant et `docs/certs/diddi-observe-staging-ca.pem` sont conservés pour l'exploitation et les tests du point d'entrée direct historique. Le certificat serveur expire le 14 février 2027 à 15:04 UTC. Cette documentation ne le retire ni ne le renouvelle et ne configure pas NPM. Le nouveau point d'entrée public doit être vérifié avant de remplacer les URLs des producteurs.
 
 ## Métriques, santé et logs
 
