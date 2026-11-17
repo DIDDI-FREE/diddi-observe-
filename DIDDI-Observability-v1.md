@@ -1,6 +1,6 @@
 # DIDDI Observability v1
 
-**Version : 1.1.3 — 17 novembre 2026**
+**Version : 1.2.0 — 17 novembre 2026**
 **Statut : contrat rédigé, prêt pour adoption et mise en œuvre. Aucune conformité des services ni aucun déploiement ne sont acquis par sa publication.**
 
 Ce protocole définit comment les services DIDDI produisent, transmettent et exploitent leurs logs, métriques, traces et informations de santé dans une plateforme commune, désignée **DiddiObserve**. Il s’applique aux API, workers, tâches planifiées et collecteurs, quel que soit leur langage.
@@ -37,14 +37,79 @@ Les services NE DOIVENT PAS appeler les API métier d’autres services pour ali
 
 | Signal | Transport de référence | Règle |
 | --- | --- | --- |
-| Logs applicatifs | JSON UTF-8 par ligne dans un fichier rotatif partagé ; OTLP logs admis | Une seule chaîne centrale par événement ; stdout seul n'active aucune collecte |
+| Logs applicatifs | OTLP HTTP/protobuf ; fichier JSONL rotatif en profil alternatif déclaré | Une seule chaîne centrale par événement ; stdout seul n'active aucune collecte |
 | Métriques | Scrape HTTP(S), exposition Prometheus/OpenMetrics | Cible privée et authentifiée, découverte par manifeste |
-| Traces | OTLP HTTP/protobuf | Adresse du collecteur configurable ; TLS et authentification hors transport local explicitement isolé |
+| Traces | OTLP HTTP/protobuf | Adresse publique configurable et authentifiée ; HTTPS ou exception HTTP MVP décrite en section 2.1 |
 | Santé | GET HTTP(S), réponse JSON | Lecture seule, délai borné, aucun effet métier |
 
 OTLP/gRPC peut être utilisé si le manifeste le déclare. Pour HTTP, l’endpoint générique et l’endpoint spécifique aux traces DOIVENT être distingués : le chemin `/v1/traces` ne doit être ni oublié ni ajouté deux fois. Le comportement exact du SDK et de sa version DOIT être testé.
 
-Le fichier partagé est le profil standard des nouveaux raccordements sur un même hôte Docker. Un transport OTLP logs déjà validé peut être conservé sans migration forcée. Une collecte stdout existante reste admise si son collecteur est explicitement déclaré et autorisé ; la stack centrale actuelle ne collecte pas automatiquement stdout. Sur des hôtes différents, un volume Docker local ne suffit pas : utiliser OTLP ou un collecteur local autorisé. Les paramètres opérationnels actuellement fournis sont documentés dans [le guide central](docs/ONBOARDING-READY.md).
+Le profil commun des nouveaux raccordements est **OTLP HTTP/protobuf pour les logs et traces**. Il ne nécessite ni réseau Docker partagé, ni volume de logs partagé, ni socket Docker. Un profil fichier JSONL déjà choisi reste compatible : producteur en lecture/écriture avec rotation, collecteur en lecture seule, volume et chemins déclarés. Une seule chaîne centrale par événement évite les doublons. Stdout seul n'active aucune collecte centrale.
+
+### 2.1. Configuration universelle du raccordement
+
+Cette section est la source normative unique pour toutes les équipes. Les fiches des modules contiennent uniquement leurs paramètres, références de secrets, correspondances de variables existantes et résultats de vérification ; elles ne définissent pas un autre protocole.
+
+**Entrées disponibles en staging :**
+
+| Entrée | Base publique | Usage |
+| --- | --- | --- |
+| HTTPS | `https://logs-otel.diddifree.com` | Disponible avec certificat reconnu par le magasin standard de l'image |
+| HTTP MVP | `http://169.58.70.37:19480` | Reste accepté pour les intégrations actuelles ; trafic et identifiants non chiffrés |
+
+Aucun raccordement ne DOIT être bloqué en attendant un réseau Docker commun ou une CA privée. La liaison du proxy HTTPS vers la passerelle centrale utilise actuellement l'IP publique. Les réseaux internes de stockage et le réseau utilisé pour le scrape sont des détails de la plateforme, pas une condition imposée à l'exporteur applicatif. Un changement HTTP vers HTTPS est explicite, sans rotation automatique des secrets.
+
+Pour un service canonique `<service>`, les routes sont :
+
+- Base OTLP : `<base>/otlp/<service>`.
+- Traces : POST `<base>/otlp/<service>/v1/traces`.
+- Logs : POST `<base>/otlp/<service>/v1/logs`.
+
+L'exporteur utilise OTLP HTTP/protobuf. Le test de route avec une enveloppe JSON vide vérifie l'accès, pas la conformité de l'export réel. Un GET navigateur sur la racine ou sur la base peut répondre 404 ; un GET sur une route POST peut répondre 403. Ce ne sont pas des pages web.
+
+### 2.2. Variables communes et compatibilité
+
+Les nouveaux modules DOIVENT prendre en charge les variables suivantes dans leur configuration applicative **et dans le Compose utilisé par Portainer**. Les modules existants peuvent conserver leurs noms compatibles à condition de déclarer la correspondance dans leur fiche.
+
+| Variable | Règle commune |
+| --- | --- |
+| `OTEL_SERVICE_NAME` | Nom canonique `<service>` ; le SDK reçoit `service.name` |
+| `ENVIRONMENT` | Environnement de télémétrie, généralement `staging` pour ce MVP |
+| `DEPLOYMENT_ID` | Identifiant du déploiement, distinct du nom du conteneur |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | Base OTLP du service ; ajouter `/v1/traces` exactement une fois selon le SDK |
+| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | URL complète facultative ; si fournie, prioritaire pour les traces, sans suffixe ajouté |
+| `OTEL_EXPORTER_OTLP_LOGS_ENDPOINT` | URL complète des logs ; sans suffixe supplémentaire |
+| `OTEL_EXPORTER_OTLP_HEADERS` | En-tête d'authentification dédié fourni par DiddiObserve, dans la syntaxe du SDK |
+| `OTEL_LOGS_ENABLED` | Activation explicite de l'export des logs |
+| `METRICS_BEARER_TOKEN` | Secret de scrape dédié, distinct des identifiants OTLP |
+
+La version, l'instance, le composant et les autres attributs de la section 3 DOIVENT aussi être renseignés par le code ou des variables déclarées dans le manifeste. Une variable `APP_ENV` ayant des effets métier ne doit pas être remplacée aveuglément : sa correspondance avec l'environnement de télémétrie est explicite.
+
+Une base OTLP vide désactive l'export de traces si aucune URL spécifique n'est fournie. `OTEL_LOGS_ENABLED=false` désactive les logs OTLP. Les modules possédant déjà un interrupteur global, tel que `OTEL_ENABLED`, déclarent aussi sa priorité. Aucun exporteur ne doit démarrer vers une adresse implicite localhost quand il est désactivé.
+
+Les variables de CA ou de certificat client propres aux SDK restent vides pour ces entrées. HTTPS utilise le magasin standard de certificats, sans désactivation de vérification TLS. Une image dépourvue de racines publiques doit installer le paquet standard de confiance.
+
+La configuration traverse obligatoirement les trois étapes : **Portainer → environment du Compose → settings/SDK du processus**. Créer les variables dans Portainer ne suffit pas. Tous les processus exporteurs (API, workers, tâches) doivent recevoir les paramètres nécessaires. Les contrôles affichent les URL et la présence des secrets, jamais leurs valeurs.
+
+### 2.3. Travail commun à toutes les équipes
+
+1. Brancher les événements structurés existants sur un exporteur de logs OTLP ; conserver la console si utile, sans double handler ni double export central.
+2. Instrumenter les requêtes entrantes, les appels sortants et les tâches utiles ; propager le contexte W3C et corréler `trace_id`, `span_id` et `request_id`. Appliquer les formats et règles de cardinalité des sections suivantes.
+3. Configurer des exports en arrière-plan, par lots, avec files et délais bornés, retries bornés et arrêt propre. Une panne de collecte ne bloque pas une opération métier et ne rend pas l'application non-ready.
+4. Protéger le endpoint Prometheus déclaré par un token dédié : secret absent => 503 ; header absent/faux => 401 ou 403 ; bon Bearer => 200 au format Prometheus/OpenMetrics. Le chemin existant peut être conservé s'il est déclaré.
+5. Relier les variables dans le Compose réellement déployé, puis redéployer. Fournir le SHA réellement exécuté, le contact et le manifeste. Les dépendances et hooks diffèrent selon le langage, pas les règles du protocole.
+
+DiddiObserve fournit et active les routes, crée des secrets distincts pour chaque service/environnement, configure collecteurs et stockage, puis vérifie les données. Les équipes n'inventent ni URL ni secret. Le fichier privé de remise est hors Git ; un JSON public ne contient que les noms ou références des secrets. Un champ secret vide dans un modèle n'est jamais une instruction d'effacer un secret installé.
+
+### 2.4. Validation universelle avant déclaration de conformité
+
+- L'application est saine et les paramètres sont présents dans les processus après déploiement.
+- Les routes POST refusent un identifiant absent ou celui d'un autre module, puis acceptent celui du service. Cette vérification ne suffit pas à déclarer le producteur raccordé.
+- Une requête non destructive et un événement repérable produisent de **vrais logs dans Loki et de vraies traces dans Tempo**, avec identité, environnement, horodatage récent et corrélation corrects.
+- Les métriques sont contrôlées séparément : refus/succès du token, activation du scrape, cible UP et séries reçues. Des logs/traces présents ne prouvent pas que les métriques fonctionnent.
+- Une indisponibilité du collecteur ne fait pas échouer le métier ; absence de doublons et filtrage des secrets vérifiés.
+
+Chaque signal a son propre état (`non configuré`, `route prête`, `producteur configuré`, `données reçues`, `validé`), daté et étayé. Une publication documentaire, un conteneur healthy ou une route qui répond 200 ne constituent pas à eux seuls une validation complète.
 
 ## 3. Identité et registre des services
 
@@ -59,7 +124,7 @@ Chaque processus applicatif DOIT publier les attributs suivants dans sa ressourc
 | `deployment.environment.name` | `development`, `test`, `staging` ou `production` |
 | `diddi.deployment.id` | Identifiant stable de l’installation, distinguant deux déploiements d’un même service |
 | `diddi.component` | `api`, `worker`, `scheduler`, `collector` ou `web` |
-| `diddi.observability.version` | Version effectivement adoptée du contrat ; `1.1.0` après validation de cette révision |
+| `diddi.observability.version` | Version effectivement adoptée du contrat ; `1.2.0` après validation de cette révision |
 
 Les attributs préfixés `diddi.` sont propres à ce contrat. L’environnement NE DOIT PAS être déduit du nom du serveur Portainer. La version de build DEVRAIT aussi figurer dans le label OCI `org.opencontainers.image.revision`.
 
@@ -287,11 +352,11 @@ Un worker longue durée DOIT produire un heartbeat après une boucle correctemen
 
 ## 8. Sécurité et isolation
 
-Les métriques et endpoints d’ingestion DOIVENT être privés et authentifiés. TLS est requis sur tout transport hors socket/local explicitement isolé ; les certificats sont vérifiés. Un service ancien sans authentification native peut passer par une passerelle privée authentifiée, à condition que son accès direct soit effectivement bloqué.
+Les métriques et endpoints d’ingestion DOIVENT être authentifiés. L’ingestion publique est autorisée selon la section 2.1 : HTTPS disponible et exception HTTP publique explicitement acceptée pour le MVP staging. Hors de cette exception, les transports distants utilisent TLS avec certificats vérifiés. Les endpoints de scrape restent limités au collecteur autorisé. Un service ancien sans authentification native peut passer par une passerelle privée authentifiée, à condition que son accès direct soit effectivement bloqué.
 
 Sans authentification valide, la collecte est refusée. Sans configuration de secret, l’endpoint reste fermé ; il ne doit pas devenir public par défaut. Les identifiants de scrape sont propres à chaque service/environnement, révocables et renouvelables. Aucun token utilisateur ou clé d’administration Portainer ne sert de secret de collecte.
 
-DiddiObserve fournit les adresses d'ingestion exactes et un secret d'ingestion distinct du token de scrape. Pour le MVP staging, l'entrée OTLP utilise HTTP sur IP publique, à `http://169.58.70.37:19480/otlp/<service>`. Le port hôte 19480 est publié vers le port 8080 de la passerelle. Les identifiants dédiés restent requis. HTTPS et Nginx Proxy Manager sont une étape ultérieure, sans bloquer l'activation actuelle ; aucune CA privée ni certificat client à monter dans les modules. Les équipes installent les paramètres fournis sans réutiliser de secrets métier. Les noms de variables propres aux SDK sont déclarés dans le manifeste. Les clés privées TLS restent côté plateforme. La plateforme n'active un scrape qu'après confirmation du token réellement installé par le producteur. L'accès fichier repose sur les permissions du volume et son montage en lecture seule ; il n'utilise pas le token OTLP.
+DiddiObserve fournit les routes et secrets selon la section 2.1 à 2.3. L'authentification OTLP et le token de scrape sont distincts. L'accès fichier repose sur les permissions du volume et son montage en lecture seule ; il n'utilise pas le token OTLP. Les clés privées TLS restent côté plateforme. Aucun secret métier n'est réutilisé.
 
 La lecture des logs Docker utilise une capacité limitée aux opérations nécessaires. Un montage de `docker.sock` en lecture seule ne limite pas les méthodes de l’API Docker. Une autorisation d’audit ponctuel via Portainer ne vaut pas autorisation permanente pour un collecteur.
 
@@ -415,6 +480,8 @@ Les responsables de services implémentent les adaptations dans leurs propres d�
 - [Nommage Prometheus](https://prometheus.io/docs/practices/naming/) et [histogrammes](https://prometheus.io/docs/practices/histograms/) : unités, séries et distributions.
 - [Cardinalité Loki](https://grafana.com/docs/loki/latest/get-started/labels/cardinality/) : choix des labels d’index.
 
-## Remise opérationnelle du 17 novembre 2026
+## Remise opérationnelle et versionnement
 
-La [remise commune aux équipes](docs/TEAM-HANDOFF.md) est la référence de déploiement MVP : HTTP public par IP sur le port 19480, aucun prérequis CA ou réseau partagé pour les exports. DiddiSend est validé pour logs et traces ; ses métriques restent à raccorder séparément. [DiddiGo](docs/DIDDIGO-HANDOFF.md) est le prochain module, avec identifiants dédiés et travail producteur explicitement listé. Ses routes centrales HTTP et HTTPS sont maintenant testées ; aucune réception de données du producteur DiddiGo n’est encore déclarée.
+**Révision 1.2.0 :** règles universelles de raccordement réunies en section 2 ; HTTP public MVP et HTTPS public explicités ; suppression du réseau partagé et de la CA privée comme prérequis d'export ; OTLP logs/traces comme profil commun des nouveaux modules. Les profils fichier existants restent compatibles. Le schéma des événements reste **1.0.0** ; aucune rotation de secrets ni modification automatique des modules.
+
+[Point d'entrée des équipes](docs/TEAM-HANDOFF.md). Les fiches de chaque module consignent les paramètres et diagnostics ; elles ne remplacent aucune règle de ce protocole.
