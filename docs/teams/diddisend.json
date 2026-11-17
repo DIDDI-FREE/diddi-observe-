@@ -5,13 +5,13 @@
   "service": "diddisend",
   "environment": "staging",
   "deployment_id": "diddisend-staging",
-  "status": "public_http_mvp",
+  "status": "logs_traces_verified",
   "owner_contact": null,
   "deployed_sha": null,
   "ingress": {
     "base_url": "http://169.58.70.37:19480",
     "proxy": "public IP gateway",
-    "public_ingress_verified": false,
+    "public_ingress_verified": true,
     "tls": {
       "enabled": false,
       "verify": true,
@@ -33,8 +33,13 @@
     "volume_name": null,
     "producer_path": null,
     "collector_mount_mode": null,
-    "central_collection_verified": false
+    "central_collection_verified": true
   },
+  "traces": {
+    "central_collection_verified": true
+  },
+  "implementation_required": false,
+  "verification_date": "2026-11-17",
   "secret_file_reference": "secrets/onboarding/diddisend.env",
   "environment_variables": {
     "ENVIRONMENT": "staging",

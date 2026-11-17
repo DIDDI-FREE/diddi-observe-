@@ -1,0 +1,61 @@
+{
+  "handoff_version": "1.0.0",
+  "protocol_version": "1.1.3",
+  "log_schema_version": "1.0.0",
+  "service": "diddigo",
+  "environment": "staging",
+  "deployment_id": "diddigo-staging",
+  "status": "central_activation_and_producer_implementation_pending",
+  "owner_contact": null,
+  "deployed_sha": null,
+  "ingress": {
+    "base_url": "http://169.58.70.37:19480",
+    "proxy": "public IP gateway",
+    "public_ingress_verified": false,
+    "tls": {
+      "enabled": false,
+      "verify": true,
+      "trust": "system-public-ca-when-https",
+      "custom_ca_required": false,
+      "client_certificate_required": false
+    },
+    "traces_path": "/otlp/diddigo/v1/traces",
+    "logs_path": "/otlp/diddigo/v1/logs"
+  },
+  "metrics": {
+    "path": "/metrics",
+    "transport": "private-network-scrape",
+    "auth": "bearer",
+    "scrape_enabled": false
+  },
+  "logs": {
+    "transport": "otlp-http",
+    "volume_name": null,
+    "producer_path": null,
+    "collector_mount_mode": null,
+    "central_collection_verified": false
+  },
+  "traces": {
+    "central_collection_verified": false
+  },
+  "implementation_required": true,
+  "verification_date": "2026-11-17",
+  "secret_file_reference": "secrets/onboarding/diddigo.env",
+  "environment_variables": {
+    "ENVIRONMENT": "staging",
+    "OTEL_EXPORTER_OTLP_HEADERS": "",
+    "DEPLOYMENT_ID": "diddigo-staging",
+    "METRICS_BEARER_TOKEN": "",
+    "OTEL_EXPORTER_OTLP_ENDPOINT": "http://169.58.70.37:19480/otlp/diddigo",
+    "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT": "http://169.58.70.37:19480/otlp/diddigo/v1/logs",
+    "OTEL_LOGS_ENABLED": "true",
+    "OTEL_EXPORTER_OTLP_CA_FILE": "",
+    "OTEL_EXPORTER_OTLP_CLIENT_CERTIFICATE_FILE": "",
+    "OTEL_EXPORTER_OTLP_CLIENT_KEY_FILE": ""
+  },
+  "notes": [
+    "No secrets in this contract. Empty secret values are placeholders, not instructions to erase installed credentials.",
+    "HTTP is publicly accessible on port 19480 for this staging MVP; HTTPS is not an activation prerequisite.",
+    "No change to business logic, log schema, metric names or OTP policy."
+  ]
+}

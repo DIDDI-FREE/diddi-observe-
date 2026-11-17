@@ -11,7 +11,7 @@
   "ingress": {
     "base_url": "http://169.58.70.37:19480",
     "proxy": "public IP gateway",
-    "public_ingress_verified": false,
+    "public_ingress_verified": true,
     "tls": {
       "enabled": false,
       "verify": true,
@@ -35,6 +35,11 @@
     "collector_mount_mode": "read-only",
     "central_collection_verified": false
   },
+  "traces": {
+    "central_collection_verified": false
+  },
+  "implementation_required": false,
+  "verification_date": "2026-11-17",
   "secret_file_reference": "secrets/onboarding/diddifree-id.env",
   "environment_variables": {
     "ENVIRONMENT": "staging",

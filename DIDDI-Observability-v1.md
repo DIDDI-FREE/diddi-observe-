@@ -414,3 +414,7 @@ Les responsables de services implémentent les adaptations dans leurs propres d�
 - [Spécification OTLP](https://opentelemetry.io/docs/specs/otlp/) : protocole d’export.
 - [Nommage Prometheus](https://prometheus.io/docs/practices/naming/) et [histogrammes](https://prometheus.io/docs/practices/histograms/) : unités, séries et distributions.
 - [Cardinalité Loki](https://grafana.com/docs/loki/latest/get-started/labels/cardinality/) : choix des labels d’index.
+
+## Remise opérationnelle du 17 novembre 2026
+
+La [remise commune aux équipes](docs/TEAM-HANDOFF.md) est la référence de déploiement MVP : HTTP public par IP sur le port 19480, aucun prérequis CA ou réseau partagé pour les exports. DiddiSend est validé pour logs et traces ; ses métriques restent à raccorder séparément. [DiddiGo](docs/DIDDIGO-HANDOFF.md) est le prochain module, avec identifiants dédiés et travail producteur explicitement listé. Son activation centrale est en attente ; aucune conformité ou réception de données DiddiGo n’est encore déclarée.

@@ -1,8 +1,10 @@
 # diddi-observe-
 
-Plateforme centrale d’observabilité DIDDI : Grafana, Prometheus, Loki, Tempo et Alloy, avec une passerelle TLS authentifiée, un registre de services et six dashboards provisionnés.
+**Remise équipes actuelle : [TEAM-HANDOFF.md](docs/TEAM-HANDOFF.md).** Ingestion publique HTTP par IP sur le port 19480 ; DiddiSend validé pour logs/traces, DiddiGo en cours de raccordement.
 
-**Le dépôt prépare le déploiement. Aucun service Portainer n’est raccordé ou modifié automatiquement.** Les quinze entrées applicatives du registre sont désactivées par défaut. Le pilote local utilise exclusivement des données synthétiques.
+Plateforme centrale d’observabilité DIDDI : Grafana, Prometheus, Loki, Tempo et Alloy, avec une passerelle authentifiée (HTTP public pour le MVP, TLS également disponible), un registre de services et six dashboards provisionnés.
+
+**Le registre de base est désactivé par défaut ; le profil onboarding déployé active les routes centrales sélectionnées.** Les quinze entrées applicatives du registre sont désactivées par défaut. Le pilote local utilise exclusivement des données synthétiques.
 
 ## Portainer depuis Git
 
@@ -14,7 +16,7 @@ Un [profil synthétique séparé](docs/SYNTHETIC-PILOT.md), `compose.portainer.s
 
 ## Contrat commun des modules
 
-Le [protocole DIDDI Observability v1.1.1](DIDDI-Observability-v1.md) définit les logs, métriques, traces et responsabilités. Le [guide de logs sur fichiers partagés](docs/LOGGING-FILES.md) fournit les variables et exemples Compose communs à tous les modules, avec volumes distincts et lecture seule côté Alloy. Les transports déjà validés peuvent être conservés ; la publication du protocole ne déploie aucune modification des producteurs.
+Le [protocole DIDDI Observability v1.1.3](DIDDI-Observability-v1.md) définit les logs, métriques, traces et responsabilités. Le [guide de logs sur fichiers partagés](docs/LOGGING-FILES.md) fournit les variables et exemples Compose communs à tous les modules, avec volumes distincts et lecture seule côté Alloy. Les transports déjà validés peuvent être conservés ; la publication du protocole ne déploie aucune modification des producteurs.
 
 ## Démarrage local
 

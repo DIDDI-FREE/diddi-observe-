@@ -6,6 +6,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 def settings(service):
+    if service not in ('diddifree-id','diddisend','diddigo'):
+        raise ValueError('Unknown service: '+service)
     common = {'ENVIRONMENT':'staging', 'OTEL_EXPORTER_OTLP_HEADERS':''}
     if service == 'diddifree-id':
         common.update(DIDDI_DEPLOYMENT_ID='diddifree-id-staging', METRICS_AUTH_TOKEN='',
@@ -14,8 +16,8 @@ def settings(service):
                       OBSERVABILITY_LOG_FILE='/var/log/diddifree/observability.jsonl',
                       OBSERVABILITY_LOG_VOLUME_NAME='diddifree-id-observability-logs-staging')
     else:
-        common.update(DEPLOYMENT_ID='diddisend-staging', METRICS_BEARER_TOKEN='',
-                      OTEL_EXPORTER_OTLP_ENDPOINT='http://169.58.70.37:19480/otlp/diddisend', OTEL_EXPORTER_OTLP_LOGS_ENDPOINT='http://169.58.70.37:19480/otlp/diddisend/v1/logs',
+        common.update(DEPLOYMENT_ID=service+'-staging', METRICS_BEARER_TOKEN='',
+                      OTEL_EXPORTER_OTLP_ENDPOINT='http://169.58.70.37:19480/otlp/'+service, OTEL_EXPORTER_OTLP_LOGS_ENDPOINT='http://169.58.70.37:19480/otlp/'+service+'/v1/logs',
                       OTEL_LOGS_ENABLED='true', OTEL_EXPORTER_OTLP_CA_FILE='',
                       OTEL_EXPORTER_OTLP_CLIENT_CERTIFICATE_FILE='', OTEL_EXPORTER_OTLP_CLIENT_KEY_FILE='')
     return common
@@ -24,17 +26,20 @@ def contract(service):
     return {
         'handoff_version':'1.0.0', 'protocol_version':'1.1.3', 'log_schema_version':'1.0.0',
         'service':service, 'environment':'staging', 'deployment_id':service+'-staging',
-        'status':'public_http_mvp', 'owner_contact':None, 'deployed_sha':None,
-        'ingress':{'base_url':'http://169.58.70.37:19480', 'proxy':'public IP gateway', 'public_ingress_verified':False,
+        'status':'logs_traces_verified' if service=='diddisend' else 'central_activation_and_producer_implementation_pending' if service=='diddigo' else 'public_http_mvp', 'owner_contact':None, 'deployed_sha':None,
+        'ingress':{'base_url':'http://169.58.70.37:19480', 'proxy':'public IP gateway', 'public_ingress_verified':service!='diddigo',
                    'tls':{'enabled':False,'verify':True,'trust':'system-public-ca-when-https','custom_ca_required':False,'client_certificate_required':False},
                    'traces_path':'/otlp/'+service+'/v1/traces', 'logs_path':'/otlp/'+service+'/v1/logs'},
-        'metrics':{'path':'/metrics' if service=='diddifree-id' else '/internal/metrics',
+        'metrics':{'path':'/metrics' if service in ('diddifree-id','diddigo') else '/internal/metrics',
                    'transport':'private-network-scrape','auth':'bearer','scrape_enabled':False},
         'logs':{'transport':'file-jsonl' if service=='diddifree-id' else 'otlp-http',
                 'volume_name':'diddifree-id-observability-logs-staging' if service=='diddifree-id' else None,
                 'producer_path':'/var/log/diddifree/observability.jsonl' if service=='diddifree-id' else None,
                 'collector_mount_mode':'read-only' if service=='diddifree-id' else None,
-                'central_collection_verified':False},
+                'central_collection_verified':service=='diddisend'},
+        'traces':{'central_collection_verified':service=='diddisend'},
+        'implementation_required':service=='diddigo',
+        'verification_date':'2026-11-17',
         'secret_file_reference':'secrets/onboarding/'+service+'.env',
         'environment_variables':settings(service),
         'notes':['No secrets in this contract. Empty secret values are placeholders, not instructions to erase installed credentials.',
@@ -44,7 +49,7 @@ def contract(service):
 
 def outputs():
     return {'docs/teams/'+s+'.json':json.dumps(contract(s),indent=2,ensure_ascii=False)+'\n'
-            for s in ('diddifree-id','diddisend')}
+            for s in ('diddifree-id','diddisend','diddigo')}
 
 def update_private_env(service):
     path = ROOT/'secrets/onboarding'/ (service+'.env')

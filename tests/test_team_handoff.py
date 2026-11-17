@@ -13,13 +13,21 @@ class TeamHandoffTests(unittest.TestCase):
         for service in ('diddifree-id','diddisend'):
             c=team_handoff.contract(service)
             self.assertEqual(c['ingress']['base_url'],'http://169.58.70.37:19480')
-            self.assertFalse(c['ingress']['public_ingress_verified'])
+            self.assertTrue(c['ingress']['public_ingress_verified'])
             self.assertFalse(c['ingress']['tls']['custom_ca_required'])
             self.assertTrue(c['ingress']['tls']['verify'])
             self.assertEqual(c['log_schema_version'],'1.0.0')
             for k,v in c['environment_variables'].items():
                 if any(x in k for x in ('CA_FILE','CERTIFICATE','KEY_FILE','TOKEN','HEADERS')):
                     self.assertEqual(v,'',k)
+
+    def test_diddigo_is_not_claimed_connected(self):
+        c=team_handoff.contract('diddigo')
+        self.assertFalse(c['ingress']['public_ingress_verified'])
+        self.assertFalse(c['logs']['central_collection_verified'])
+        self.assertTrue(c['implementation_required'])
+        self.assertTrue(c['environment_variables']['OTEL_EXPORTER_OTLP_ENDPOINT'].endswith('/diddigo'))
+        self.assertEqual(c['metrics']['path'],'/metrics')
 
     def test_module_transport_is_preserved(self):
         self.assertEqual(team_handoff.contract('diddifree-id')['logs']['transport'],'file-jsonl')

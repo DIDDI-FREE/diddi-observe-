@@ -1,18 +1,18 @@
-> Mise à jour MVP v1.1.3 : utiliser le HTTP public par IP sans attendre HTTPS. Les consignes HTTPS ci-dessous sont historiques ; la configuration actuelle est dans [MIGRATION-V1.md](teams/MIGRATION-V1.md).
+# DiddiSend — configuration validée
 
-# Premier raccordement réel : DiddiSend
+Le 17 novembre 2026, après redéploiement : API healthy, 20 entrées de logs retrouvées dans Loki et 4 traces DiddiSend dans Tempo. Cela valide logs et traces ; le scrape central des métriques reste désactivé.
 
-Statut au 13 novembre 2026 : **préparation, non connecté**. Aucun changement effectué dans le dépôt ou la stack DiddiSend. Aucune source réelle activée dans DiddiObserve.
+```ini
+ENVIRONMENT=staging
+DEPLOYMENT_ID=diddisend-staging
+OTEL_EXPORTER_OTLP_ENDPOINT=http://169.58.70.37:19480/otlp/diddisend
+OTEL_EXPORTER_OTLP_LOGS_ENDPOINT=http://169.58.70.37:19480/otlp/diddisend/v1/logs
+OTEL_LOGS_ENABLED=true
+OTEL_EXPORTER_OTLP_CA_FILE=
+OTEL_EXPORTER_OTLP_CLIENT_CERTIFICATE_FILE=
+OTEL_EXPORTER_OTLP_CLIENT_KEY_FILE=
+```
 
-## Constats vérifiés
+Conserver les identifiants OTLP et le token métriques déjà installés. Aucun certificat ni réseau partagé requis pour l'ingestion publique. Ne pas imposer de migration des logs vers un fichier.
 
-- Portainer : environnement `diddifree-prod`, stack `diddisend-backend` (24), conteneur API en fonctionnement et healthy.
-- Révision Git annoncée par Portainer : `85f954d8b7ee9b65e1c748893b938ca35853ac29`. Ce champ n'est pas une attestation du contenu de l'image.
-- `METRICS_BEARER_TOKEN` et `OTEL_EXPORTER_OTLP_ENDPOINT` sont vides dans le conteneur.
-- Lectures HTTP ponctuelles : `/health` et `/ready` répondent 200 avec `status=ok` ; `/internal/metrics` répond 503. Ces lectures ne valident pas la sémantique de readiness du nouveau code.
-- Le checkout local DiddiSend est à `8c6341633787a5f7837a193cf468cd6ceddb707a`, avec des modifications non commitées dans l'instrumentation et le Compose. Le manifeste `deploy/observability/diddisend-observability.v1.yaml` est également non suivi. Ne pas considérer ces fichiers comme déployés.
-- Le code local prévoit des métriques canoniques, des traces OTLP et des logs JSON stdout. Il ne configure pas un exporteur OTLP de logs. Activer les traces seul ne fera pas arriver les logs dans Loki.
-
-## Instructions actuelles — remplacent la remise du 13 novembre
-
-Les constats ci-dessus sont historiques, pas un état du déploiement du jour. Pour les équipes, utiliser désormais [la migration v1 sans CA privée](teams/MIGRATION-V1.md) et [les paramètres centraux actualisés](ONBOARDING-READY.md). Le domaine NPM est encore à confirmer ; aucun endpoint d'exemple ne doit être activé. Les secrets existants sont conservés, les variables de CA privée sont vidées et les exports OTLP restent en attente de l'URL publique vérifiée.
+[Remise commune](TEAM-HANDOFF.md) · [Contrat JSON](teams/diddisend.json) · [Migration](teams/MIGRATION-V1.md).

@@ -36,3 +36,7 @@ Redéployer les processus exporteurs. La passerelle est raccordée à `diddi-aut
 Vérifier le refus sans identifiant, le succès avec l'identifiant dédié, puis la réception effective des données dans Loki et Tempo. Une route opérationnelle ne prouve pas qu'un producteur exporte. Le scrape des métriques est activé séparément après validation du token. Les JSON publics contiennent des champs secrets vides : ne pas effacer les secrets installés. Les fichiers privés `.env` conservent les valeurs existantes.
 
 Le schéma des événements reste 1.0.0. La révision 1.1.3 remplace les consignes précédentes demandant d'attendre un domaine HTTPS. Les autres modules restent sous la responsabilité de leurs équipes ; DiddiObserve ne redéploie que sa propre stack.
+
+## Nouveau module : DiddiGo
+
+Suivre [DIDDIGO-HANDOFF.md](../DIDDIGO-HANDOFF.md). Contrairement à DiddiSend, le code local inspecté nécessite encore les exporteurs et le passage des variables dans Compose. Ne pas copier les secrets de Send.
