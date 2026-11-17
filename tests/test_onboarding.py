@@ -20,6 +20,9 @@ class OnboardingTests(unittest.TestCase):
                 self.assertEqual(s['state'], 'inventoried')
                 for signal in ('logs', 'traces'):
                     self.assertIn('location = /otlp/' + s['id'] + '/v1/' + signal, output['config/onboarding/nginx.conf'])
+            elif s['id'] == 'diddigo':
+                self.assertTrue(s['otlp']['enabled'])
+                self.assertFalse(any(s[k]['enabled'] for k in ('health','metrics','logs')))
             elif s['id'] != 'synthetic':
                 self.assertFalse(any(s[k]['enabled'] for k in ('otlp','health','metrics','logs')))
         self.assertEqual(output['config/onboarding/nginx.conf'].count('location = /synthetic-test'), 1)

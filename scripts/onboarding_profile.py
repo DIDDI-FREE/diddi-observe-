@@ -1,4 +1,4 @@
-"""Prepare only the two authorized sources, without claiming producer readiness."""
+"""Prepare only the authorized sources, without claiming producer readiness."""
 import json
 from pathlib import Path
 import sys
@@ -16,6 +16,9 @@ def outputs():
         'diddisend': ('DiddiSend team', 'diddisend-backend-api-1:8000', '/internal/metrics', '/ready'),
     }
     for service in registry['services']:
+        if service['id'] == 'diddigo':
+            service['otlp']['enabled'] = True
+            service['owner'] = 'DiddiGo team'
         if service['id'] not in targets:
             continue
         owner, host, metrics, health = targets[service['id']]

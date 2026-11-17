@@ -35,7 +35,7 @@
       "environment": "staging",
       "deployment_id": "diddigo-staging",
       "component": "api",
-      "owner": "",
+      "owner": "DiddiGo team",
       "state": "inventoried",
       "evidence": [],
       "metrics": {
@@ -44,7 +44,7 @@
         "known_path": "/metrics"
       },
       "otlp": {
-        "enabled": false
+        "enabled": true
       },
       "logs": {
         "enabled": false
