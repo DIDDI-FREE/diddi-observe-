@@ -12,7 +12,7 @@ class TeamHandoffTests(unittest.TestCase):
     def test_private_ingress_requires_no_ca(self):
         for service in ('diddifree-id','diddisend'):
             c=team_handoff.contract(service)
-            self.assertEqual(c['ingress']['base_url'],'http://diddi-observe-gateway-1:8080')
+            self.assertEqual(c['ingress']['base_url'],'http://169.58.70.37:19480')
             self.assertFalse(c['ingress']['public_ingress_verified'])
             self.assertFalse(c['ingress']['tls']['custom_ca_required'])
             self.assertTrue(c['ingress']['tls']['verify'])

@@ -29,7 +29,7 @@ def outputs():
     pilot = source['config/synthetic/nginx.conf']
     location = pilot[pilot.index('    location = /synthetic-test'):pilot.index('    location /otlp/')]
     nginx = nginx.replace('    location /otlp/', location + '    location /otlp/')
-    # MVP ingestion on shared Docker networks; this port is never host-published.
+    # MVP ingestion listener; Portainer publishes this on host port 19480.
     routes = nginx[nginx.index('    location = /otlp/'):nginx.index('    location = /synthetic-test')]
     private = '  server {\n    listen 8080;\n' + routes + '    location / { return 404; }\n  }\n'
     nginx = nginx.rsplit('}', 1)[0] + private + '}\n'
