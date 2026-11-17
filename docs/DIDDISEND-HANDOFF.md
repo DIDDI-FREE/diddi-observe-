@@ -1,3 +1,5 @@
+> Mise à jour MVP v1.1.2 : utiliser le HTTP privé Docker sans attendre HTTPS. Les consignes HTTPS ci-dessous sont historiques ; la configuration actuelle est dans [MIGRATION-V1.md](teams/MIGRATION-V1.md).
+
 # Premier raccordement réel : DiddiSend
 
 Statut au 13 novembre 2026 : **préparation, non connecté**. Aucun changement effectué dans le dépôt ou la stack DiddiSend. Aucune source réelle activée dans DiddiObserve.

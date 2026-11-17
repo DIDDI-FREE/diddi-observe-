@@ -1,20 +1,21 @@
 {
   "handoff_version": "1.0.0",
-  "protocol_version": "1.1.1",
+  "protocol_version": "1.1.2",
   "log_schema_version": "1.0.0",
   "service": "diddifree-id",
   "environment": "staging",
   "deployment_id": "diddifree-id-staging",
-  "status": "pending_public_ingress",
+  "status": "private_http_mvp",
   "owner_contact": null,
   "deployed_sha": null,
   "ingress": {
-    "base_url": null,
-    "proxy": "Nginx Proxy Manager",
+    "base_url": "http://diddi-observe-gateway-1:8080",
+    "proxy": "private Docker gateway",
     "public_ingress_verified": false,
     "tls": {
+      "enabled": false,
       "verify": true,
-      "trust": "system-public-ca",
+      "trust": "system-public-ca-when-https",
       "custom_ca_required": false,
       "client_certificate_required": false
     },
@@ -35,20 +36,20 @@
     "central_collection_verified": false
   },
   "secret_file_reference": "secrets/onboarding/diddifree-id.env",
-  "environment_pending_ingress": {
+  "environment_variables": {
     "ENVIRONMENT": "staging",
     "OTEL_EXPORTER_OTLP_HEADERS": "",
     "DIDDI_DEPLOYMENT_ID": "diddifree-id-staging",
     "METRICS_AUTH_TOKEN": "",
-    "OTEL_ENABLED": "false",
-    "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": "",
+    "OTEL_ENABLED": "true",
+    "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": "http://diddi-observe-gateway-1:8080/otlp/diddifree-id/v1/traces",
     "OTEL_EXPORTER_OTLP_CERTIFICATE": "",
     "OBSERVABILITY_LOG_FILE": "/var/log/diddifree/observability.jsonl",
     "OBSERVABILITY_LOG_VOLUME_NAME": "diddifree-id-observability-logs-staging"
   },
   "notes": [
     "No secrets in this contract. Empty secret values are placeholders, not instructions to erase installed credentials.",
-    "An empty OTLP endpoint is intentional until the public domain is configured and tested.",
+    "HTTP is used only on the shared Docker network for this MVP; HTTPS is not an activation prerequisite.",
     "No change to business logic, log schema, metric names or OTP policy."
   ]
 }

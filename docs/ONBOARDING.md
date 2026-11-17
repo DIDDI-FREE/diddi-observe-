@@ -1,3 +1,5 @@
+> Mise à jour MVP v1.1.2 : utiliser le HTTP privé Docker sans attendre HTTPS. Les consignes HTTPS ci-dessous sont historiques ; la configuration actuelle est dans [MIGRATION-V1.md](teams/MIGRATION-V1.md).
+
 # Raccorder un service
 
 Le protocole commun est [DIDDI Observability v1.1.1](../DIDDI-Observability-v1.md). Chaque module fournit son manifeste, son propriétaire et les preuves locales avant raccordement. Le registre de base garde les sources réelles désactivées ; les activations autorisées du profil central sont décrites dans [ONBOARDING-READY.md](ONBOARDING-READY.md).

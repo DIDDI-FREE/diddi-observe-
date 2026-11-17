@@ -1,3 +1,5 @@
+> Mise à jour MVP v1.1.2 : utiliser le HTTP privé Docker sans attendre HTTPS. Les consignes HTTPS ci-dessous sont historiques ; la configuration actuelle est dans [MIGRATION-V1.md](teams/MIGRATION-V1.md).
+
 # Paramètres centraux DiddiSend et DiddiFree ID
 
 Ce profil prépare uniquement `diddisend` et `diddifree-id` en staging. Les routes sont provisionnées ; cela ne certifie pas que les producteurs exportent leurs données. Le registre reste `inventoried`. Le pilote synthétique reste disponible.

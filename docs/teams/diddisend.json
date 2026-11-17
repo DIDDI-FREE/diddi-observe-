@@ -1,20 +1,21 @@
 {
   "handoff_version": "1.0.0",
-  "protocol_version": "1.1.1",
+  "protocol_version": "1.1.2",
   "log_schema_version": "1.0.0",
   "service": "diddisend",
   "environment": "staging",
   "deployment_id": "diddisend-staging",
-  "status": "pending_public_ingress",
+  "status": "private_http_mvp",
   "owner_contact": null,
   "deployed_sha": null,
   "ingress": {
-    "base_url": null,
-    "proxy": "Nginx Proxy Manager",
+    "base_url": "http://diddi-observe-gateway-1:8080",
+    "proxy": "private Docker gateway",
     "public_ingress_verified": false,
     "tls": {
+      "enabled": false,
       "verify": true,
-      "trust": "system-public-ca",
+      "trust": "system-public-ca-when-https",
       "custom_ca_required": false,
       "client_certificate_required": false
     },
@@ -35,21 +36,21 @@
     "central_collection_verified": false
   },
   "secret_file_reference": "secrets/onboarding/diddisend.env",
-  "environment_pending_ingress": {
+  "environment_variables": {
     "ENVIRONMENT": "staging",
     "OTEL_EXPORTER_OTLP_HEADERS": "",
     "DEPLOYMENT_ID": "diddisend-staging",
     "METRICS_BEARER_TOKEN": "",
-    "OTEL_EXPORTER_OTLP_ENDPOINT": "",
-    "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT": "",
-    "OTEL_LOGS_ENABLED": "false",
+    "OTEL_EXPORTER_OTLP_ENDPOINT": "http://diddi-observe-gateway-1:8080/otlp/diddisend",
+    "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT": "http://diddi-observe-gateway-1:8080/otlp/diddisend/v1/logs",
+    "OTEL_LOGS_ENABLED": "true",
     "OTEL_EXPORTER_OTLP_CA_FILE": "",
     "OTEL_EXPORTER_OTLP_CLIENT_CERTIFICATE_FILE": "",
     "OTEL_EXPORTER_OTLP_CLIENT_KEY_FILE": ""
   },
   "notes": [
     "No secrets in this contract. Empty secret values are placeholders, not instructions to erase installed credentials.",
-    "An empty OTLP endpoint is intentional until the public domain is configured and tested.",
+    "HTTP is used only on the shared Docker network for this MVP; HTTPS is not an activation prerequisite.",
     "No change to business logic, log schema, metric names or OTP policy."
   ]
 }

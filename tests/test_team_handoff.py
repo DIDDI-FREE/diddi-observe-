@@ -9,16 +9,16 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'scripts'))
 import team_handoff
 
 class TeamHandoffTests(unittest.TestCase):
-    def test_pending_ingress_has_no_invented_domain_or_private_ca(self):
+    def test_private_ingress_requires_no_ca(self):
         for service in ('diddifree-id','diddisend'):
             c=team_handoff.contract(service)
-            self.assertIsNone(c['ingress']['base_url'])
+            self.assertEqual(c['ingress']['base_url'],'http://diddi-observe-gateway-1:8080')
             self.assertFalse(c['ingress']['public_ingress_verified'])
             self.assertFalse(c['ingress']['tls']['custom_ca_required'])
             self.assertTrue(c['ingress']['tls']['verify'])
             self.assertEqual(c['log_schema_version'],'1.0.0')
-            for k,v in c['environment_pending_ingress'].items():
-                if any(x in k for x in ('ENDPOINT','CA_FILE','CERTIFICATE','KEY_FILE','TOKEN','HEADERS')):
+            for k,v in c['environment_variables'].items():
+                if any(x in k for x in ('CA_FILE','CERTIFICATE','KEY_FILE','TOKEN','HEADERS')):
                     self.assertEqual(v,'',k)
 
     def test_module_transport_is_preserved(self):

@@ -1,3 +1,5 @@
+> Mise à jour MVP v1.1.2 : utiliser le HTTP privé Docker sans attendre HTTPS. Les consignes HTTPS ci-dessous sont historiques ; la configuration actuelle est dans [MIGRATION-V1.md](teams/MIGRATION-V1.md).
+
 # Raccordement DiddiFree ID : vérification du 13 novembre 2026
 
 Statut : **non connecté**. Inspection en lecture seule de la stack `diddi-auth` (18), environnement Portainer `diddifree-prod`. Aucun changement dans le module.

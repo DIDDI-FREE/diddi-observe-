@@ -1,6 +1,6 @@
 # DIDDI Observability v1
 
-**Version : 1.1.1 — 17 novembre 2026**
+**Version : 1.1.2 — 17 novembre 2026**
 **Statut : contrat rédigé, prêt pour adoption et mise en œuvre. Aucune conformité des services ni aucun déploiement ne sont acquis par sa publication.**
 
 Ce protocole définit comment les services DIDDI produisent, transmettent et exploitent leurs logs, métriques, traces et informations de santé dans une plateforme commune, désignée **DiddiObserve**. Il s’applique aux API, workers, tâches planifiées et collecteurs, quel que soit leur langage.
@@ -291,7 +291,7 @@ Les métriques et endpoints d’ingestion DOIVENT être privés et authentifiés
 
 Sans authentification valide, la collecte est refusée. Sans configuration de secret, l’endpoint reste fermé ; il ne doit pas devenir public par défaut. Les identifiants de scrape sont propres à chaque service/environnement, révocables et renouvelables. Aucun token utilisateur ou clé d’administration Portainer ne sert de secret de collecte.
 
-DiddiObserve fournit les adresses d'ingestion exactes et un secret d'ingestion distinct du token de scrape. Pour le MVP, l'entrée OTLP passe par le HTTPS public de Nginx Proxy Manager, avec certificat reconnu par les autorités publiques standard des images : aucune CA privée ni certificat client à monter dans les modules. Les équipes installent les paramètres fournis ; elles ne les inventent pas et ne réutilisent pas de secrets métier. Le domaine et sa chaîne TLS doivent être validés avant activation ; un champ d'URL nul ou vide dans la remise signifie que l'export reste en attente. Les certificats privés du point d'entrée direct historique restent du ressort de la plateforme, sans prérequis pour les producteurs utilisant le domaine public. Les noms de variables propres aux SDK sont déclarés dans le manifeste. Les clés privées TLS restent côté plateforme. La plateforme n'active un scrape qu'après confirmation du token réellement installé par le producteur. L'accès fichier repose sur les permissions du volume et son montage en lecture seule ; il n'utilise pas le token OTLP.
+DiddiObserve fournit les adresses d'ingestion exactes et un secret d'ingestion distinct du token de scrape. Pour le MVP staging, l'entrée OTLP utilise HTTP sur le réseau Docker privé partagé, à `http://diddi-observe-gateway-1:8080/otlp/<service>`. Aucun port HTTP n'est publié sur l'hôte. Les identifiants dédiés restent requis. HTTPS et Nginx Proxy Manager sont une étape ultérieure, sans bloquer l'activation actuelle ; aucune CA privée ni certificat client à monter dans les modules. Les équipes installent les paramètres fournis sans réutiliser de secrets métier. Les noms de variables propres aux SDK sont déclarés dans le manifeste. Les clés privées TLS restent côté plateforme. La plateforme n'active un scrape qu'après confirmation du token réellement installé par le producteur. L'accès fichier repose sur les permissions du volume et son montage en lecture seule ; il n'utilise pas le token OTLP.
 
 La lecture des logs Docker utilise une capacité limitée aux opérations nécessaires. Un montage de `docker.sock` en lecture seule ne limite pas les méthodes de l’API Docker. Une autorisation d’audit ponctuel via Portainer ne vaut pas autorisation permanente pour un collecteur.
 
@@ -398,7 +398,7 @@ Une simple présence de SDK, un conteneur `running` ou un endpoint `200` ne suff
 
 La version suit `MAJOR.MINOR.PATCH` : changement incompatible de type, unité ou sémantique → majeur ; ajout compatible → mineur ; correction rédactionnelle → patch. Les consommateurs v1 DOIVENT ignorer les champs supplémentaires inconnus. Une propriété ne doit pas changer silencieusement de sens.
 
-**Révision 1.1.1 :** simplification du raccordement HTTPS via Nginx Proxy Manager et confiance publique standard, sans CA privée à distribuer aux modules. Aucun changement de schéma JSON, de token ou de nom de métrique ; aucune migration obligatoire des transports déjà validés. Voir [les instructions de migration des équipes](docs/teams/MIGRATION-V1.md).
+**Révision 1.1.2 :** raccordement MVP par HTTP privé Docker sans attendre HTTPS, sans CA à distribuer aux modules. Aucun changement de schéma JSON, de token ou de nom de métrique ; aucune migration obligatoire des transports déjà validés. Voir [les instructions de migration des équipes](docs/teams/MIGRATION-V1.md).
 
 **Révision 1.1.0 :** ajout du profil commun de fichiers JSON rotatifs et des responsabilités de montage/collecte, précision des secrets/TLS dans les guides et formalisation de l'exception temporaire OTP. Le schéma des événements reste `schema_version=1.0.0` ; les noms et unités des métriques ne changent pas. Les producteurs déjà raccordés par OTLP ou une collecte stdout validée peuvent conserver leur transport. Ils ne déclarent `diddi.observability.version=1.1.0` qu'après adoption vérifiée des obligations applicables. Les exemples d'événements 1.0.0 restent lisibles ; publier ce document ne change pas leurs versions déployées.
 

@@ -9,24 +9,24 @@ def settings(service):
     common = {'ENVIRONMENT':'staging', 'OTEL_EXPORTER_OTLP_HEADERS':''}
     if service == 'diddifree-id':
         common.update(DIDDI_DEPLOYMENT_ID='diddifree-id-staging', METRICS_AUTH_TOKEN='',
-                      OTEL_ENABLED='false', OTEL_EXPORTER_OTLP_TRACES_ENDPOINT='',
+                      OTEL_ENABLED='true', OTEL_EXPORTER_OTLP_TRACES_ENDPOINT='http://diddi-observe-gateway-1:8080/otlp/diddifree-id/v1/traces',
                       OTEL_EXPORTER_OTLP_CERTIFICATE='',
                       OBSERVABILITY_LOG_FILE='/var/log/diddifree/observability.jsonl',
                       OBSERVABILITY_LOG_VOLUME_NAME='diddifree-id-observability-logs-staging')
     else:
         common.update(DEPLOYMENT_ID='diddisend-staging', METRICS_BEARER_TOKEN='',
-                      OTEL_EXPORTER_OTLP_ENDPOINT='', OTEL_EXPORTER_OTLP_LOGS_ENDPOINT='',
-                      OTEL_LOGS_ENABLED='false', OTEL_EXPORTER_OTLP_CA_FILE='',
+                      OTEL_EXPORTER_OTLP_ENDPOINT='http://diddi-observe-gateway-1:8080/otlp/diddisend', OTEL_EXPORTER_OTLP_LOGS_ENDPOINT='http://diddi-observe-gateway-1:8080/otlp/diddisend/v1/logs',
+                      OTEL_LOGS_ENABLED='true', OTEL_EXPORTER_OTLP_CA_FILE='',
                       OTEL_EXPORTER_OTLP_CLIENT_CERTIFICATE_FILE='', OTEL_EXPORTER_OTLP_CLIENT_KEY_FILE='')
     return common
 
 def contract(service):
     return {
-        'handoff_version':'1.0.0', 'protocol_version':'1.1.1', 'log_schema_version':'1.0.0',
+        'handoff_version':'1.0.0', 'protocol_version':'1.1.2', 'log_schema_version':'1.0.0',
         'service':service, 'environment':'staging', 'deployment_id':service+'-staging',
-        'status':'pending_public_ingress', 'owner_contact':None, 'deployed_sha':None,
-        'ingress':{'base_url':None, 'proxy':'Nginx Proxy Manager', 'public_ingress_verified':False,
-                   'tls':{'verify':True,'trust':'system-public-ca','custom_ca_required':False,'client_certificate_required':False},
+        'status':'private_http_mvp', 'owner_contact':None, 'deployed_sha':None,
+        'ingress':{'base_url':'http://diddi-observe-gateway-1:8080', 'proxy':'private Docker gateway', 'public_ingress_verified':False,
+                   'tls':{'enabled':False,'verify':True,'trust':'system-public-ca-when-https','custom_ca_required':False,'client_certificate_required':False},
                    'traces_path':'/otlp/'+service+'/v1/traces', 'logs_path':'/otlp/'+service+'/v1/logs'},
         'metrics':{'path':'/metrics' if service=='diddifree-id' else '/internal/metrics',
                    'transport':'private-network-scrape','auth':'bearer','scrape_enabled':False},
@@ -36,9 +36,9 @@ def contract(service):
                 'collector_mount_mode':'read-only' if service=='diddifree-id' else None,
                 'central_collection_verified':False},
         'secret_file_reference':'secrets/onboarding/'+service+'.env',
-        'environment_pending_ingress':settings(service),
+        'environment_variables':settings(service),
         'notes':['No secrets in this contract. Empty secret values are placeholders, not instructions to erase installed credentials.',
-                 'An empty OTLP endpoint is intentional until the public domain is configured and tested.',
+                 'HTTP is used only on the shared Docker network for this MVP; HTTPS is not an activation prerequisite.',
                  'No change to business logic, log schema, metric names or OTP policy.'],
     }
 
@@ -56,7 +56,7 @@ def update_private_env(service):
     updated = {**old, **settings(service)}
     for key in (token,'OTEL_EXPORTER_OTLP_HEADERS'):
         updated[key]=old[key]
-    path.write_text('# Pending public HTTPS ingress: OTLP disabled, existing credentials preserved.\n'+
+    path.write_text('# Private Docker HTTP MVP: existing credentials preserved; no custom CA needed.\n'+
                     ''.join(k+'='+v+'\n' for k,v in updated.items()),encoding='utf-8',newline='\n')
 
 if __name__=='__main__':

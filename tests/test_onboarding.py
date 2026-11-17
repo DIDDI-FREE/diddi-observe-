@@ -27,6 +27,15 @@ class OnboardingTests(unittest.TestCase):
         self.assertNotIn('http://alloy:', output['config/onboarding/nginx.conf'])
         self.assertIn('diddi-observe-blackbox-1:9115', output['config/onboarding/prometheus.yaml'])
 
+    def test_private_http_is_ingestion_only_and_not_published(self):
+        nginx = onboarding_profile.outputs()['config/onboarding/nginx.conf']
+        private = nginx[nginx.index('    listen 8080;'):]
+        self.assertIn('auth_basic_user_file /etc/nginx/auth/diddisend.htpasswd', private)
+        self.assertIn('location / { return 404; }', private)
+        self.assertNotIn('grafana', private)
+        config = yaml.safe_load(portainer.render())
+        self.assertFalse(any('8080' in str(p) for p in config['services']['gateway']['ports']))
+
     def test_network_scope(self):
         cfg = yaml.safe_load(portainer.render())
         for name, s in cfg['services'].items():
