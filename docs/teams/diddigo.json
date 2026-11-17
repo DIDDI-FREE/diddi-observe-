@@ -5,13 +5,13 @@
   "service": "diddigo",
   "environment": "staging",
   "deployment_id": "diddigo-staging",
-  "status": "central_activation_and_producer_implementation_pending",
+  "status": "producer_implementation_pending",
   "owner_contact": null,
   "deployed_sha": null,
   "ingress": {
     "base_url": "http://169.58.70.37:19480",
     "proxy": "public IP gateway",
-    "public_ingress_verified": false,
+    "public_ingress_verified": true,
     "tls": {
       "enabled": false,
       "verify": true,

@@ -32,3 +32,7 @@ Le chemin générique `/otlp/<service>` sert de base : l'exporteur ajoute `/v1/t
 - Tous : [protocole](../DIDDI-Observability-v1.md).
 
 Les anciennes instructions de CA privée, d'attente de HTTPS ou d'ingestion réservée au réseau Docker sont remplacées par cette remise. Les équipes modifient leurs modules ; DiddiObserve configure sa plateforme centrale.
+
+## HTTPS désormais disponible
+
+`https://logs-otel.diddifree.com` accepte les mêmes chemins `/otlp/<service>/v1/...`. Les routes DiddiGo logs/traces ont été vérifiées avec certificat public standard (POST 401 sans identifiant, 200 avec). HTTP par IP reste disponible. Le proxy rejoint la passerelle par IP publique pour le moment, pas par un réseau Docker partagé. Aucun certificat privé à monter dans les modules.

@@ -8,9 +8,11 @@ Stack Portainer `diddi-go-backend` (15), application saine ; révision Git indiq
 
 Dans le dépôt local : `app_base/core/observability.py` écrit des événements JSON sur le logger `uvicorn.error`, avec corrélation request_id. `app_base/main.py` expose `/health`, `/ready` et `/metrics`. La fonction `/metrics` inspectée ne vérifie pas de token. Aucun exporteur OpenTelemetry trouvé dans les sources et dépendances recherchées. Ce constat porte sur le checkout local, pas une preuve du contenu de l'image distante.
 
-## Activation centrale en attente
+## Activation centrale vérifiée
 
-Les adresses ci-dessous sont réservées à DiddiGo et ses identifiants dédiés sont générés. La connexion Portainer s'est fermée avant activation des routes ; celles-ci ne sont pas encore déployées ni testées. DiddiObserve doit ajouter les identifiants à la configuration centrale, activer les routes diddigo dans le profil onboarding, redéployer sa stack et vérifier POST sans/mauvais/bon identifiant (401/401/200). L'équipe peut implémenter le raccordement dès maintenant, mais doit attendre cette validation pour activer les exports. Ce point ne dépend ni de HTTPS ni d'un réseau partagé.
+Routes logs/traces activées le 17 novembre 2026. Tests POST : sans identifiant 401, identifiant dédié valide 200, sur HTTP `http://169.58.70.37:19480` et HTTPS `https://logs-otel.diddifree.com`, certificat vérifié avec le magasin standard. Le 404 à la racine est normal ; ce n'est pas un dashboard. Les modules restent raccordés par adresse publique, aucun réseau Docker partagé requis.
+
+Dernier redéploiement DiddiGo vérifié : révision Portainer `fa5e069087f801d6d3529f935e3399f9974efffb`, conteneurs healthy. Les variables OTEL/METRICS sont enregistrées dans la stack, mais absentes du conteneur app. Le checkout local de même SHA ne les référence pas dans `docker-compose.portainer.yml` et ne contient pas l'export OTLP recherché. Aucun log ni trace diddigo trouvé sur les 15 dernières minutes lors de cette vérification. L'équipe doit encore réaliser les changements ci-dessous ; redéployer sans eux ne suffit pas.
 
 ## Travail demandé à l'équipe DiddiGo
 

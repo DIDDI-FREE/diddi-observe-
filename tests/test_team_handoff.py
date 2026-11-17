@@ -23,7 +23,7 @@ class TeamHandoffTests(unittest.TestCase):
 
     def test_diddigo_is_not_claimed_connected(self):
         c=team_handoff.contract('diddigo')
-        self.assertFalse(c['ingress']['public_ingress_verified'])
+        self.assertTrue(c['ingress']['public_ingress_verified'])
         self.assertFalse(c['logs']['central_collection_verified'])
         self.assertTrue(c['implementation_required'])
         self.assertTrue(c['environment_variables']['OTEL_EXPORTER_OTLP_ENDPOINT'].endswith('/diddigo'))
