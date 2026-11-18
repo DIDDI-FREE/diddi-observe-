@@ -24,7 +24,7 @@ Un 404 sur `/metrics` ne prouve pas l'absence de toute instrumentation : un autr
 
 ## Autres signaux
 
-DiddiGo : logs et traces récents reçus. DiddiFree ID : traces récentes reçues ; collecte des deux fichiers actifs configurée côté central. Réception à vérifier après déploiement ; l'API force encore observability.jsonl via OBSERVABILITY_LOG_FILE. L'URL de traces actuellement installée dans ID utilise encore le nom Docker interne ; l'équipe peut appliquer la base publique du protocole sans modifier les identifiants.
+DiddiGo : logs et traces récents reçus. DiddiFree ID : traces récentes reçues ; collecte des deux fichiers actifs configurée côté central. Réception worker vérifiée dans Loki après déploiement du commit 40a064d (deux entrées récentes dans la fenêtre d'une heure) ; l'API force encore observability.jsonl via OBSERVABILITY_LOG_FILE. L'URL de traces actuellement installée dans ID utilise encore le nom Docker interne ; l'équipe peut appliquer la base publique du protocole sans modifier les identifiants.
 
 Le protocole universel reste la référence : [DIDDI Observability](../DIDDI-Observability-v1.md). Ce fichier est un état opérationnel, pas un protocole par module.
 
@@ -45,3 +45,5 @@ Exception temporaire explicite : `logs.otp_policy=allow-staging` accepte
 Ces champs ne deviennent pas des labels. Les filtres existants pour mots de passe,
 tokens et cookies restent actifs. Cette exception est refusée hors staging.
 Le collecteur ne modifie pas `OTP_LOG_PLAINTEXT` côté producteur.
+
+Vérification après déploiement : Alloy fonctionne sans redémarrage en boucle ; montage du volume ID confirmé RW=false. Loki retourne le flux component=worker. Le fichier API attendu reste absent, donc sa réception n'est pas validée.
