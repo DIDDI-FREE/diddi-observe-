@@ -21,11 +21,11 @@ class TeamHandoffTests(unittest.TestCase):
                 if any(x in k for x in ('CA_FILE','CERTIFICATE','KEY_FILE','TOKEN','HEADERS')):
                     self.assertEqual(v,'',k)
 
-    def test_diddigo_is_not_claimed_connected(self):
+    def test_diddigo_received_signals(self):
         c=team_handoff.contract('diddigo')
         self.assertTrue(c['ingress']['public_ingress_verified'])
-        self.assertFalse(c['logs']['central_collection_verified'])
-        self.assertTrue(c['implementation_required'])
+        self.assertTrue(c['logs']['central_collection_verified'])
+        self.assertFalse(c['implementation_required'])
         self.assertTrue(c['environment_variables']['OTEL_EXPORTER_OTLP_ENDPOINT'].endswith('/diddigo'))
         self.assertEqual(c['metrics']['path'],'/metrics')
 

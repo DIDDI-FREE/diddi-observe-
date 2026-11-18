@@ -1,3 +1,5 @@
+> État actualisé du 18 novembre : voir [METRICS-STATUS.md](METRICS-STATUS.md). Les diagnostics antérieurs ci-dessous sont historiques ; les JSON de remise sont actualisés.
+
 # Fiche DiddiFree ID
 
 Source normative : [protocole universel v1.2.1](../DIDDI-Observability-v1.md). Cette fiche décrit uniquement les paramètres et les écarts connus.

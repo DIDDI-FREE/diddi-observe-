@@ -1,3 +1,5 @@
+> État actualisé du 18 novembre : voir [METRICS-STATUS.md](METRICS-STATUS.md). Les diagnostics antérieurs ci-dessous sont historiques ; les JSON de remise sont actualisés.
+
 # DiddiGo — raccordement à DiddiObserve
 
 Service canonique `diddigo`, environnement `staging`, déploiement `diddigo-staging`. Lire [la remise commune](TEAM-HANDOFF.md) et [le contrat JSON](teams/diddigo.json).

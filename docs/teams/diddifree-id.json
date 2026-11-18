@@ -6,7 +6,7 @@
   "service": "diddifree-id",
   "environment": "staging",
   "deployment_id": "diddifree-id-staging",
-  "status": "public_http_mvp",
+  "status": "traces_metrics_received_file_logs_pending",
   "owner_contact": null,
   "deployed_sha": null,
   "ingress": {
@@ -29,7 +29,7 @@
     "path": "/metrics",
     "transport": "private-network-scrape",
     "auth": "bearer",
-    "scrape_enabled": false
+    "scrape_enabled": true
   },
   "logs": {
     "transport": "file-jsonl",
@@ -39,10 +39,10 @@
     "central_collection_verified": false
   },
   "traces": {
-    "central_collection_verified": false
+    "central_collection_verified": true
   },
   "implementation_required": false,
-  "verification_date": "2026-11-17",
+  "verification_date": "2026-11-18",
   "secret_file_reference": "secrets/onboarding/diddifree-id.env",
   "environment_variables": {
     "ENVIRONMENT": "staging",

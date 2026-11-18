@@ -6,7 +6,7 @@
   "service": "diddisend",
   "environment": "staging",
   "deployment_id": "diddisend-staging",
-  "status": "logs_traces_verified",
+  "status": "logs_traces_metrics_received",
   "owner_contact": null,
   "deployed_sha": null,
   "ingress": {
@@ -42,7 +42,7 @@
     "central_collection_verified": true
   },
   "implementation_required": false,
-  "verification_date": "2026-11-17",
+  "verification_date": "2026-11-18",
   "secret_file_reference": "secrets/onboarding/diddisend.env",
   "environment_variables": {
     "ENVIRONMENT": "staging",
