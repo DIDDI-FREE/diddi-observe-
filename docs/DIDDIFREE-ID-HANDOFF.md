@@ -1,6 +1,6 @@
 # Fiche DiddiFree ID
 
-Source normative : [protocole universel v1.2.0](../DIDDI-Observability-v1.md). Cette fiche décrit uniquement les paramètres et les écarts connus.
+Source normative : [protocole universel v1.2.1](../DIDDI-Observability-v1.md). Cette fiche décrit uniquement les paramètres et les écarts connus.
 
 - Service : `diddifree-id` ; environnement : `staging` ; déploiement : `diddifree-id-staging`.
 - Traces : `http://169.58.70.37:19480/otlp/diddifree-id/v1/traces` ; HTTPS disponible avec le même chemin sur `https://logs-otel.diddifree.com`.

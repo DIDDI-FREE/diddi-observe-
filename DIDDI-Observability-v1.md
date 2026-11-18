@@ -1,6 +1,6 @@
 # DIDDI Observability v1
 
-**Version : 1.2.0 — 17 novembre 2026**
+**Version : 1.2.1 — 18 novembre 2026**
 **Statut : contrat rédigé, prêt pour adoption et mise en œuvre. Aucune conformité des services ni aucun déploiement ne sont acquis par sa publication.**
 
 Ce protocole définit comment les services DIDDI produisent, transmettent et exploitent leurs logs, métriques, traces et informations de santé dans une plateforme commune, désignée **DiddiObserve**. Il s’applique aux API, workers, tâches planifiées et collecteurs, quel que soit leur langage.
@@ -101,12 +101,33 @@ La configuration traverse obligatoirement les trois étapes : **Portainer → en
 
 DiddiObserve fournit et active les routes, crée des secrets distincts pour chaque service/environnement, configure collecteurs et stockage, puis vérifie les données. Les équipes n'inventent ni URL ni secret. Le fichier privé de remise est hors Git ; un JSON public ne contient que les noms ou références des secrets. Un champ secret vide dans un modèle n'est jamais une instruction d'effacer un secret installé.
 
+### 2.3.1. Raccordement réel des loggers et prévention des doublons
+
+Cette règle s'applique à tous les langages et frameworks : l'existence d'un exporteur et d'une variable d'activation ne prouve pas que les événements applicatifs lui parviennent. Chaque équipe DOIT identifier le chemin réel entre le logger utilisé par son code, les éventuels parents, les handlers/appenders et l'exporteur. Les niveaux, filtres et configurations du serveur peuvent interrompre ce chemin.
+
+Pour Python/Uvicorn notamment, un handler attaché uniquement au logger racine ne reçoit pas les événements d'une branche dont la propagation est désactivée. Le logger `uvicorn.error` peut transmettre à son parent `uvicorn`, qui arrête la propagation ; `uvicorn.access` peut aussi avoir son propre circuit. Ce piège concerne toute hiérarchie équivalente, pas seulement DiddiGo. Il faut vérifier la configuration effectivement chargée, pas supposer que tous les frameworks ont ce comportement.
+
+L'équipe choisit et teste une seule stratégie par flux :
+
+- raccorder le handler OTLP à la branche qui reçoit réellement les événements ;
+- ou utiliser un logger applicatif dédié avec un chemin maîtrisé vers l'exporteur ;
+- ou configurer explicitement la propagation vers la racine, en contrôlant les handlers déjà installés.
+
+Ne pas activer globalement la propagation ni attacher le même exporteur à tous les parents sans vérifier les doublons. La présence d'une copie console est admise ; plusieurs exports centraux du même événement ne le sont pas. La configuration du serveur peut remplacer les handlers lors du démarrage : le raccordement DOIT rester effectif après l'initialisation réelle et être idempotent. Tester les processus API et workers séparément, ainsi que les modes multi-processus utilisés en déploiement.
+
+Le handler DOIT accepter les messages JSON structurés et les messages texte ordinaires. Un échec de décodage JSON ne doit pas supprimer silencieusement un log texte ; appliquer le formatage et la protection des données prévus au protocole. Les erreurs d'export ne doivent pas réentrer dans le même handler et provoquer une boucle de journalisation.
+
+**Test de raccordement obligatoire :** démarrer avec la configuration réelle du serveur, émettre un événement marqué via la fonction de journalisation réellement utilisée par l'application, puis vérifier qu'il atteint l'exporteur une seule fois. Tester aussi un message texte et les branches de logging incluses dans le périmètre, avec leurs niveaux et filtres. Un test appelant directement l'exporteur ne couvre pas ce risque. En environnement contrôlé, utiliser un exporteur mémoire ou factice ; après déploiement, retrouver le marqueur dans Loki avec la bonne identité et l'horodatage attendu. Vérifier la corrélation trace/span lorsqu'un contexte de trace est actif.
+
+Les intégrations déjà validées conservent leur configuration si ce test passe. Aucun changement automatique de secrets, d'URL, de framework ou de transport n'est requis par cette clarification.
+
 ### 2.4. Validation universelle avant déclaration de conformité
 
 - L'application est saine et les paramètres sont présents dans les processus après déploiement.
 - Les routes POST refusent un identifiant absent ou celui d'un autre module, puis acceptent celui du service. Cette vérification ne suffit pas à déclarer le producteur raccordé.
 - Une requête non destructive et un événement repérable produisent de **vrais logs dans Loki et de vraies traces dans Tempo**, avec identité, environnement, horodatage récent et corrélation corrects.
 - Les métriques sont contrôlées séparément : refus/succès du token, activation du scrape, cible UP et séries reçues. Des logs/traces présents ne prouvent pas que les métriques fonctionnent.
+- Le test de raccordement de la section 2.3.1 passe avec la configuration réelle du serveur ; le marqueur est retrouvé une seule fois dans Loki.
 - Une indisponibilité du collecteur ne fait pas échouer le métier ; absence de doublons et filtrage des secrets vérifiés.
 
 Chaque signal a son propre état (`non configuré`, `route prête`, `producteur configuré`, `données reçues`, `validé`), daté et étayé. Une publication documentaire, un conteneur healthy ou une route qui répond 200 ne constituent pas à eux seuls une validation complète.
@@ -124,7 +145,7 @@ Chaque processus applicatif DOIT publier les attributs suivants dans sa ressourc
 | `deployment.environment.name` | `development`, `test`, `staging` ou `production` |
 | `diddi.deployment.id` | Identifiant stable de l’installation, distinguant deux déploiements d’un même service |
 | `diddi.component` | `api`, `worker`, `scheduler`, `collector` ou `web` |
-| `diddi.observability.version` | Version effectivement adoptée du contrat ; `1.2.0` après validation de cette révision |
+| `diddi.observability.version` | Version effectivement adoptée du contrat ; `1.2.1` après validation de cette révision |
 
 Les attributs préfixés `diddi.` sont propres à ce contrat. L’environnement NE DOIT PAS être déduit du nom du serveur Portainer. La version de build DEVRAIT aussi figurer dans le label OCI `org.opencontainers.image.revision`.
 
@@ -485,3 +506,5 @@ Les responsables de services implémentent les adaptations dans leurs propres d�
 **Révision 1.2.0 :** règles universelles de raccordement réunies en section 2 ; HTTP public MVP et HTTPS public explicités ; suppression du réseau partagé et de la CA privée comme prérequis d'export ; OTLP logs/traces comme profil commun des nouveaux modules. Les profils fichier existants restent compatibles. Le schéma des événements reste **1.0.0** ; aucune rotation de secrets ni modification automatique des modules.
 
 [Point d'entrée des équipes](docs/TEAM-HANDOFF.md). Les fiches de chaque module consignent les paramètres et diagnostics ; elles ne remplacent aucune règle de ce protocole.
+
+**Révision 1.2.1 — 18 novembre 2026 :** clarification du raccordement des loggers, de la propagation, des niveaux/filtres, de l’initialisation et de la prévention des doublons. Ajout du test passant par le logger applicatif réel. Aucun changement du schéma des événements (1.0.0), des routes ou des secrets.

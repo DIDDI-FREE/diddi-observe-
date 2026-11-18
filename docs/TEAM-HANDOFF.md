@@ -1,6 +1,6 @@
 # Remise commune aux équipes
 
-**Source normative unique : [protocole universel DIDDI Observability v1.2.0](../DIDDI-Observability-v1.md).**
+**Source normative unique : [protocole universel DIDDI Observability v1.2.1](../DIDDI-Observability-v1.md).**
 
 Toutes les équipes suivent sa section 2 pour les transports, les variables, l'implémentation et la validation, ainsi que les sections suivantes pour les formats, métriques, traces et alertes. Il n'existe pas de protocole propre à DiddiGo ou DiddiSend.
 
@@ -13,3 +13,7 @@ Les fiches ci-dessous complètent le protocole avec l'identité, les paramètres
 | DiddiFree ID | [Fiche](DIDDIFREE-ID-HANDOFF.md) | [JSON](teams/diddifree-id.json) | Profil fichier conservé ; collecte JSONL centrale et réception de traces non validées |
 
 [Migration des intégrations existantes](teams/MIGRATION-V1.md). Publier ces documents ne modifie ni ne redéploie les modules.
+
+## Vérification demandée à toutes les équipes — v1.2.1
+
+Appliquer le test de raccordement des loggers décrit en section 2.3.1 du protocole. Vérifier le chemin réel des événements jusqu’au handler/exporteur, les niveaux, filtres et propagations avec la configuration du serveur déployé. Corriger seulement les intégrations qui échouent à ce test ; conserver celles dont les logs arrivent déjà correctement sans doublons. Aucun changement de token ou d’URL requis.

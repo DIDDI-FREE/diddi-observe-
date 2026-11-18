@@ -24,7 +24,7 @@ def settings(service):
 
 def contract(service):
     return {
-        'handoff_version':'1.0.0', 'protocol_version':'1.2.0', 'protocol_reference':'DIDDI-Observability-v1.md', 'log_schema_version':'1.0.0',
+        'handoff_version':'1.0.0', 'protocol_version':'1.2.1', 'protocol_reference':'DIDDI-Observability-v1.md', 'log_schema_version':'1.0.0',
         'service':service, 'environment':'staging', 'deployment_id':service+'-staging',
         'status':'logs_traces_verified' if service=='diddisend' else 'producer_implementation_pending' if service=='diddigo' else 'public_http_mvp', 'owner_contact':None, 'deployed_sha':None,
         'ingress':{'base_url':'http://169.58.70.37:19480', 'proxy':'public IP gateway', 'public_ingress_verified':True,

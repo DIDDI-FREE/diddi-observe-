@@ -1,4 +1,4 @@
-# Migration vers le protocole universel v1.2.0
+# Migration vers le protocole universel v1.2.1
 
 Appliquer [le protocole universel, section 2](../../DIDDI-Observability-v1.md#2-architecture-et-transports). Cette page décrit seulement la compatibilité avec les intégrations existantes.
 
