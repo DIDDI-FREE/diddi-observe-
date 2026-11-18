@@ -63,7 +63,7 @@
       "state": "inventoried",
       "evidence": [],
       "metrics": {
-        "enabled": false,
+        "enabled": true,
         "auth": "bearer",
         "known_path": "/internal/metrics",
         "url": "http://diddisend-backend-api-1:8000/internal/metrics",

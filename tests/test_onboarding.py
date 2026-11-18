@@ -15,7 +15,7 @@ class OnboardingTests(unittest.TestCase):
             if s['id'] in ('diddisend', 'diddifree-id'):
                 self.assertTrue(s['otlp']['enabled'])
                 self.assertTrue(s['health']['enabled'])
-                self.assertFalse(s['metrics']['enabled'])
+                self.assertEqual(s['metrics']['enabled'], s['id'] == 'diddisend')
                 self.assertFalse(s['logs']['enabled'])
                 self.assertEqual(s['state'], 'inventoried')
                 for signal in ('logs', 'traces'):

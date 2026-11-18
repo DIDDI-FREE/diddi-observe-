@@ -87,6 +87,20 @@ scrape_configs:
     target_label: instance
   - target_label: __address__
     replacement: diddi-observe-blackbox-1:9115
+- job_name: service-diddisend
+  scheme: http
+  metrics_path: /internal/metrics
+  sample_limit: 20000
+  authorization:
+    credentials_file: /run/secrets/diddisend.metrics
+  static_configs:
+  - targets:
+    - diddisend-backend-api-1:8000
+    labels:
+      service_name: diddisend
+      environment: staging
+      deployment_id: diddisend-staging
+      component: api
 - job_name: health-diddisend
   scrape_interval: 30s
   metrics_path: /probe

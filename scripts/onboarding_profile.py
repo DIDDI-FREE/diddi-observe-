@@ -25,7 +25,7 @@ def outputs():
         service.update(owner=owner, state='inventoried')
         service['otlp']['enabled'] = True
         service['health'] = dict(enabled=True, url='http://' + host + health, isolated_network=True)
-        service['metrics'].update(enabled=False, url='http://' + host + metrics, isolated_network=True)
+        service['metrics'].update(enabled=service['id'] == 'diddisend', url='http://' + host + metrics, isolated_network=True)
     render.validate(registry)
     # Retain the authenticated synthetic exercise route used by the smoke test.
     nginx = render.nginx(registry)
