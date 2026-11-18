@@ -1,11 +1,11 @@
-# Migration vers le protocole universel v1.2.1
+# Migration des intégrations 1.x vers le protocole commun 2.0.0
 
-Appliquer [le protocole universel, section 2](../../DIDDI-Observability-v1.md#2-architecture-et-transports). Cette page décrit seulement la compatibilité avec les intégrations existantes.
+Seule référence normative : [protocole universel](../../DIDDI-Observability-v1.md), sections 2, 4.3 et validation de conformité.
 
-- Le schéma des événements reste 1.0.0. Conserver les noms de métriques, les identités et les secrets existants.
-- Les nouveaux raccordements utilisent les variables communes ; les modules existants peuvent conserver des alias explicitement documentés. Ne pas réécrire une intégration fonctionnelle uniquement pour renommer une variable.
-- DiddiSend conserve ses variables et son export OTLP logs/traces déjà validé.
-- DiddiFree ID conserve `METRICS_AUTH_TOKEN` comme alias de `METRICS_BEARER_TOKEN`, `DIDDI_DEPLOYMENT_ID` comme alias de `DEPLOYMENT_ID`, son interrupteur `OTEL_ENABLED` et son endpoint complet `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`. Son profil de logs fichier JSONL reste compatible ; ne pas changer la décision OTP dans cette migration.
-- DiddiGo doit implémenter les règles communes ; son diagnostic est dans sa fiche. Les paramètres seuls ne remplacent pas le code et le passage Compose manquants.
-- HTTP public par IP reste accepté pour le MVP. HTTPS public est disponible avec les mêmes chemins ; aucune bascule automatique des producteurs ni installation de CA privée.
-- Les métriques, logs, traces et sondes sont validés séparément selon la section 2.4. Mettre à jour la version de conformité uniquement après les vérifications applicables.
+- Producteurs OTLP HTTP/protobuf existants : conserver leurs secrets et endpoints fonctionnels, vérifier les variables, le schéma, chaque processus et les preuves de réception ; ne pas réimplémenter le métier.
+- Producteurs par fichier, stdout collecté ou autre transport : ajouter l'export OTLP au logger, valider un événement canari exclu de l'ancien transport, coordonner la bascule, vérifier la réception puis retirer l'ancienne collecte centrale.
+- Pas de double export général pour « tester » : il crée des doublons. Documenter la fenêtre de bascule et le retour arrière.
+- Ne pas supprimer les fichiers/volumes du producteur ni importer les archives automatiquement.
+- Un transport historique temporairement maintenu doit déclarer un responsable, une échéance et migration_required=true. Il ne vaut pas conformité 2.0.0.
+- La version du schéma des événements reste 1.0.0. La version du protocole réellement adoptée n'est relevée à 2.0.0 qu'après validation.
+- Les politiques de rétention et l'exception OTP staging ne sont pas modifiées par cette migration.

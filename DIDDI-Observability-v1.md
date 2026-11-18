@@ -1,6 +1,6 @@
-# DIDDI Observability v1
+# DIDDI Observability — protocole universel
 
-**Version : 1.2.1 — 18 novembre 2026**
+**Version : 2.0.0 — 18 novembre 2026**
 **Statut : contrat rédigé, prêt pour adoption et mise en œuvre. Aucune conformité des services ni aucun déploiement ne sont acquis par sa publication.**
 
 Ce protocole définit comment les services DIDDI produisent, transmettent et exploitent leurs logs, métriques, traces et informations de santé dans une plateforme commune, désignée **DiddiObserve**. Il s’applique aux API, workers, tâches planifiées et collecteurs, quel que soit leur langage.
@@ -23,9 +23,8 @@ Il s’appuie sur l’[audit des services du 13 novembre 2026](docs/AUDIT.md). L
 
 ```text
 Services et workers DIDDI
-  ├─ logs JSON → fichier rotatif partagé (lecture seule) → Alloy → Loki
-  │             ou transport OTLP logs déclaré et validé
-  ├─ endpoint métriques privé ← Prometheus
+  ├─ logs structurés → OTLP HTTP/protobuf → Alloy → Loki
+  ├─ endpoint métriques authentifié ← Prometheus
   └─ traces OTLP → collecteur → stockage de traces
                                       ↓
                   Grafana : plateforme, service, opération
@@ -37,14 +36,16 @@ Les services NE DOIVENT PAS appeler les API métier d’autres services pour ali
 
 | Signal | Transport de référence | Règle |
 | --- | --- | --- |
-| Logs applicatifs | OTLP HTTP/protobuf ; fichier JSONL rotatif en profil alternatif déclaré | Une seule chaîne centrale par événement ; stdout seul n'active aucune collecte |
-| Métriques | Scrape HTTP(S), exposition Prometheus/OpenMetrics | Cible privée et authentifiée, découverte par manifeste |
+| Logs applicatifs | OTLP HTTP/protobuf obligatoire | Une seule chaîne centrale par événement ; stdout seul n'active aucune collecte |
+| Métriques | Scrape HTTP(S), exposition Prometheus/OpenMetrics | Cible joignable par Prometheus et authentifiée, déclarée dans le manifeste |
 | Traces | OTLP HTTP/protobuf | Adresse publique configurable et authentifiée ; HTTPS ou exception HTTP MVP décrite en section 2.1 |
 | Santé | GET HTTP(S), réponse JSON | Lecture seule, délai borné, aucun effet métier |
 
-OTLP/gRPC peut être utilisé si le manifeste le déclare. Pour HTTP, l’endpoint générique et l’endpoint spécifique aux traces DOIVENT être distingués : le chemin `/v1/traces` ne doit être ni oublié ni ajouté deux fois. Le comportement exact du SDK et de sa version DOIT être testé.
+**Transport unique obligatoire pour tous les modules applicatifs, existants et nouveaux : OTLP HTTP/protobuf pour les logs et les traces.** Les fichiers partagés, la collecte stdout/Docker et OTLP/gRPC ne sont pas des variantes conformes de ce contrat. La console et les fichiers locaux peuvent rester des copies de dépannage ; DiddiObserve ne doit pas les collecter en parallèle.
 
-Le profil commun des nouveaux raccordements est **OTLP HTTP/protobuf pour les logs et traces**. Il ne nécessite ni réseau Docker partagé, ni volume de logs partagé, ni socket Docker. Un profil fichier JSONL déjà choisi reste compatible : producteur en lecture/écriture avec rotation, collecteur en lecture seule, volume et chemins déclarés. Une seule chaîne centrale par événement évite les doublons. Stdout seul n'active aucune collecte centrale.
+Le chemin /v1/logs ou /v1/traces est ajouté exactement une fois selon le SDK. Les endpoints spécifiques sont des URL complètes. Le comportement du SDK utilisé doit être testé.
+
+La migration d'une intégration historique est décrite en section 4.3. Son maintien temporaire évite une interruption ; il ne constitue ni une exception permanente ni une conformité v2. Aucun réseau Docker partagé, volume partagé ou socket Docker n'est requis des applications.
 
 ### 2.1. Configuration universelle du raccordement
 
@@ -73,6 +74,7 @@ Les nouveaux modules DOIVENT prendre en charge les variables suivantes dans leur
 
 | Variable | Règle commune |
 | --- | --- |
+| `OTEL_EXPORTER_OTLP_PROTOCOL` | `http/protobuf` obligatoire pour les logs et traces |
 | `OTEL_SERVICE_NAME` | Nom canonique `<service>` ; le SDK reçoit `service.name` |
 | `ENVIRONMENT` | Environnement de télémétrie, généralement `staging` pour ce MVP |
 | `DEPLOYMENT_ID` | Identifiant du déploiement, distinct du nom du conteneur |
@@ -119,7 +121,7 @@ Le handler DOIT accepter les messages JSON structurés et les messages texte ord
 
 **Test de raccordement obligatoire :** démarrer avec la configuration réelle du serveur, émettre un événement marqué via la fonction de journalisation réellement utilisée par l'application, puis vérifier qu'il atteint l'exporteur une seule fois. Tester aussi un message texte et les branches de logging incluses dans le périmètre, avec leurs niveaux et filtres. Un test appelant directement l'exporteur ne couvre pas ce risque. En environnement contrôlé, utiliser un exporteur mémoire ou factice ; après déploiement, retrouver le marqueur dans Loki avec la bonne identité et l'horodatage attendu. Vérifier la corrélation trace/span lorsqu'un contexte de trace est actif.
 
-Les intégrations déjà validées conservent leur configuration si ce test passe. Aucun changement automatique de secrets, d'URL, de framework ou de transport n'est requis par cette clarification.
+Les intégrations déjà validées conservent leur configuration si ce test passe. Les secrets et frameworks existants sont conservés ; les transports historiques doivent suivre la migration de la section 4.3.
 
 ### 2.4. Validation universelle avant déclaration de conformité
 
@@ -145,7 +147,7 @@ Chaque processus applicatif DOIT publier les attributs suivants dans sa ressourc
 | `deployment.environment.name` | `development`, `test`, `staging` ou `production` |
 | `diddi.deployment.id` | Identifiant stable de l’installation, distinguant deux déploiements d’un même service |
 | `diddi.component` | `api`, `worker`, `scheduler`, `collector` ou `web` |
-| `diddi.observability.version` | Version effectivement adoptée du contrat ; `1.2.1` après validation de cette révision |
+| `diddi.observability.version` | Version effectivement adoptée du contrat ; `2.0.0` après validation de cette révision |
 
 Les attributs préfixés `diddi.` sont propres à ce contrat. L’environnement NE DOIT PAS être déduit du nom du serveur Portainer. La version de build DEVRAIT aussi figurer dans le label OCI `org.opencontainers.image.revision`.
 
@@ -235,43 +237,20 @@ Les logs d’accès du serveur, les messages de librairies et les logs métier D
 
 Les logs de santé et de scrape réussis PEUVENT être filtrés pour réduire le bruit. Le filtrage et tout échantillonnage des logs sont déclarés ; les erreurs ne sont pas supprimées silencieusement.
 
-### 4.3 Convention universelle de fichiers et volumes
+### 4.3 Migration des transports historiques vers OTLP
 
-Le contrat, les variables et le schéma sont communs ; le branchement au logger dépend du langage. L'adaptation DOIT rester dans le dispositif de journalisation et la configuration de déploiement : les routes, règles et transactions métier ne doivent pas être réécrites pour ouvrir des fichiers de logs.
+La cible est identique pour chaque API, worker et tâche : logger applicatif → exporteur OTLP HTTP/protobuf → passerelle DiddiObserve → Alloy → Loki. Le schéma JSON des événements reste 1.0.0 ; cette migration porte sur leur transport, pas sur les règles métier.
 
-| Paramètre | Convention |
-| --- | --- |
-| `OBSERVABILITY_LOG_FILE` | Chemin absolu lu par le logger ; défaut de référence `/var/log/diddifree/observability.jsonl` |
-| `OBSERVABILITY_LOG_VOLUME_NAME` | Variable Compose ; `<service.name>-observability-logs-<environment>` pour un déploiement unique |
-| Plusieurs déploiements dans le même environnement | Ajouter un suffixe de déploiement stable au nom du volume ; aucune fusion implicite |
-| Répertoire du producteur | `/var/log/diddifree`, volume monté en lecture/écriture |
-| Répertoire du collecteur | `/var/log/inputs/<registry-id>`, même volume externe monté en lecture seule |
-| Format | UTF-8, un objet JSON complet par ligne terminée par un saut de ligne ; schéma de la section 4.1 |
-| Rotation initiale | Seuil de 10 MiB par fichier actif, 5 archives maximum par écrivain ; environ 60 MiB plus marge par écrivain |
+1. L'équipe du module raccorde son logger existant à un exporteur OTLP et transmet les variables à chaque processus. Elle conserve le même service.name et distingue diddi.component=api, worker ou scheduler.
+2. DiddiObserve fournit les endpoints et les secrets dédiés, puis vérifie les attributs, la réception et la corrélation. Une implémentation locale seule ne suffit pas.
+3. Avant la bascule générale, valider un marqueur OTLP synthétique exclu du flux fichier, ou un processus canari non collecté par fichiers. Ne pas exporter simultanément les événements métier par les deux chemins.
+4. Coordonner la désactivation de la collecte historique et l'activation OTLP générale. Prévoir un retour arrière borné ; aucun rattrapage automatique des archives. Documenter la fenêtre de bascule et toute perte ou duplication éventuelle.
+5. Vérifier séparément API et workers dans Loki, puis retirer le montage partagé du collecteur central. Les fichiers et volumes du producteur ne sont pas supprimés par DiddiObserve.
 
-`OBSERVABILITY_LOG_VOLUME_NAME` n'est pas un mécanisme de création de fichier applicatif. Le Compose DOIT l'utiliser pour nommer le volume et transmettre `OBSERVABILITY_LOG_FILE` au processus. Le logger DOIT lire le chemin, créer/ouvrir le fichier et gérer la rotation. Les variables seules dans Portainer n'implémentent aucun de ces comportements. Les réglages de rotation propres à chaque bibliothèque sont déclarés dans le manifeste ; aucun nom de variable supplémentaire n'est supposé reconnu universellement.
+Tant que la bascule n'est pas vérifiée, le manifeste déclare target_transport=otlp-http/protobuf, le transport réellement utilisé, un responsable, une échéance et migration_required=true. Il ne déclare pas la conformité v2.
 
-Un volume est dédié au service, à l'environnement et au déploiement. Le producteur crée le volume nommé ; Alloy le référence comme `external: true` après vérification de son existence sur le même hôte. Aucun socket Docker ni montage de `/var/lib/docker` n'est nécessaire. Le montage porte sur le répertoire complet afin que la rotation reste possible.
+DiddiFreeID est actuellement dans cet état transitoire : lecture des deux fichiers actifs côté central, traces OTLP et métriques déjà raccordées. Cette description est un état de migration, jamais une alternative offerte aux autres équipes.
 
-Le processus applicatif DOIT pouvoir écrire et Alloy lire les fichiers : définir les UID/GID et permissions de répertoire/fichier compatibles au déploiement, sans recourir à `chmod 777` ni exécuter l'application en root uniquement pour les logs. Le collecteur NE DOIT PAS modifier, supprimer ou faire tourner les fichiers du producteur.
-
-### 4.4 Rotation, concurrence et continuité
-
-- Un seul écrivain/gestionnaire de rotation est autorisé par fichier. Plusieurs workers ou répliques DOIVENT utiliser un gestionnaire central de journalisation compatible avec leur concurrence, ou des fichiers distincts, par exemple `observability-api-<instance>.jsonl` et `observability-worker-<instance>.jsonl`. Un simple handler de rotation par processus sur un fichier commun n'est pas une preuve de sûreté.
-- Préférer renommage du fichier actif puis réouverture. Toute stratégie de type `copytruncate` nécessite une preuve explicite des pertes/doublons acceptés. Tester la poursuite de lecture avant et après rotation et redémarrage.
-- Alloy DOIT suivre la liste exacte des fichiers actifs déclarés (ou un motif borné pour les instances). Ne pas inclure les archives et les fichiers compressés par un glob général : leur relecture peut dupliquer les événements. Déclarer le comportement au premier démarrage et en reprise ; les positions du collecteur sont persistées dans son propre volume, pas dans le volume producteur monté en lecture seule.
-- Le budget s'applique à tous les fichiers et écrivains, y compris les instances anciennes. Déclarer la suppression des fichiers orphelins après redéploiement ; la rotation de chaque fichier seul ne borne pas le nombre de fichiers.
-- Disque plein, permission refusée ou échec du logger ne DOIVENT PAS faire échouer une transaction métier. Borner la file de journalisation et les attentes, compter les pertes avec `diddi_telemetry_dropped_total`, et prévoir un diagnostic de secours sans récursion du logger.
-- Les archives locales constituent un tampon borné, pas une promesse de rétention centrale ni de livraison sans perte. Mesurer le débit pour dimensionner la fenêtre récupérable lors d'une panne du collecteur.
-- stdout PEUT être conservé pour le diagnostic local, avec rotation Docker indépendante. Le même événement NE DOIT PAS être envoyé simultanément à Loki par fichier, stdout collecté et OTLP logs. L'export des traces OTLP reste indépendant du transport des logs.
-
-### 4.5 Responsabilités et manifeste de raccordement
-
-Le module fournit : logger JSON, écriture/rotation, droits, montage en lecture/écriture, variables effectivement consommées, modèle de concurrence et tests. DiddiObserve fournit : déclaration du volume externe, montage en lecture seule dans Alloy, règles de lecture et de filtrage, identité issue du registre, positions persistantes, stockage Loki, dashboards et contrôles d'arrivée. Les deux équipes vérifient ensemble la rotation, la reprise et la corrélation.
-
-Le manifeste DOIT déclarer `logs.transport` (`file-jsonl`, `otlp-http` ou transport legacy documenté), hôte de stockage, nom du volume, chemins actifs et d'archives, écrivains, identité de chaque composant, droits requis, seuil et nombre d'archives, budget total, nettoyage des instances anciennes, transport central unique, comportement de reprise et exceptions de confidentialité. Il référence les secrets sans leurs valeurs. Un worker ne reçoit pas automatiquement l'identité `api` parce qu'il partage un volume : ses fichiers doivent être associés à une entrée/composant distincts du registre.
-
-Les [exemples de configuration communs](docs/LOGGING-FILES.md) illustrent le montage ID et la convention pour tous les modules. Ils ne constituent pas une activation de la collecte. En particulier, `observability.jsonl` ne correspond pas au motif historique `*.log` : DiddiObserve DOIT adapter sa règle de lecture avant de déclarer ce raccordement opérationnel.
 
 ## 5. Corrélation et traces distribuées
 
@@ -377,7 +356,7 @@ Les métriques et endpoints d’ingestion DOIVENT être authentifiés. L’inges
 
 Sans authentification valide, la collecte est refusée. Sans configuration de secret, l’endpoint reste fermé ; il ne doit pas devenir public par défaut. Les identifiants de scrape sont propres à chaque service/environnement, révocables et renouvelables. Aucun token utilisateur ou clé d’administration Portainer ne sert de secret de collecte.
 
-DiddiObserve fournit les routes et secrets selon la section 2.1 à 2.3. L'authentification OTLP et le token de scrape sont distincts. L'accès fichier repose sur les permissions du volume et son montage en lecture seule ; il n'utilise pas le token OTLP. Les clés privées TLS restent côté plateforme. Aucun secret métier n'est réutilisé.
+DiddiObserve fournit les routes et secrets selon la section 2.1 à 2.3. L'authentification OTLP et le token de scrape sont distincts. Les logs et traces applicatifs utilisent les identifiants OTLP dédiés ; aucun volume partagé n'est requis. Les clés privées TLS restent côté plateforme. Aucun secret métier n'est réutilisé.
 
 La lecture des logs Docker utilise une capacité limitée aux opérations nécessaires. Un montage de `docker.sock` en lecture seule ne limite pas les méthodes de l’API Docker. Une autorisation d’audit ponctuel via Portainer ne vaut pas autorisation permanente pour un collecteur.
 
@@ -398,7 +377,7 @@ Paramètres initiaux du profil standard, à inscrire dans le manifeste :
 | Logs techniques centraux | 14 jours en staging, 30 jours en production |
 | Traces | 7 jours en staging, 14 jours en production |
 | Métriques | 30 jours en staging, 90 jours en production |
-| Rotation fichier applicatif cible | 10 MiB actif + 5 archives par écrivain ; budget total et nettoyage documentés |
+| Copies locales facultatives | Budget borné déclaré ; jamais un transport central alternatif |
 | Rotation Docker cible si stdout conservé | 10 MiB par fichier, 5 fichiers par conteneur, ou budget équivalent documenté ; indépendante de la rotation applicative |
 
 Les rétentions sont des durées maximales du profil technique ; elles ne définissent pas la rétention réglementaire ou métier des journaux d’audit. Les copies, sauvegardes et exports doivent suivre une politique d’expiration cohérente. Le stockage nécessaire DOIT être calculé à partir des débits mesurés, avec marge et alerte de capacité avant activation générale.
@@ -476,7 +455,7 @@ La validation s’effectue sur un environnement isolé ou sur un scénario expli
 | C09 | Heartbeat/fraîcheur, backlog et durée des jobs visibles selon le profil ; boucle bloquée détectée |
 | C10 | Collecteur indisponible pendant 5 min : opérations métier possibles, ressources bornées, pertes/reprises mesurées, récupération démontrée |
 | C11 | Preuve d’arrivée au stockage et de consultation Grafana, corrélation logs/traces, affichage correct de l’absence de données |
-| C12 | Rétention/rotation configurées, sauvegardes couvertes, règles d’alertes vérifiées et runbooks attribués ; pour les fichiers : preuve de rotation sous charge, reprise après redémarrage, lecture seule Alloy, droits, budget disque et concurrence maîtrisée |
+| C12 | Rétention/rotation configurées, sauvegardes couvertes, règles d’alertes vérifiées et runbooks attribués ; pour OTLP : export par lots, files bornées, arrêt propre, panne du collecteur et absence de doublons vérifiés |
 
 Une simple présence de SDK, un conteneur `running` ou un endpoint `200` ne suffit pas. Le rapport de conformité contient résultats, horodatage, environnement, révision, preuves et exceptions. Les critères non applicables doivent être justifiés. Aucun des services audités n’est certifié par le présent document.
 
@@ -507,4 +486,16 @@ Les responsables de services implémentent les adaptations dans leurs propres d�
 
 [Point d'entrée des équipes](docs/TEAM-HANDOFF.md). Les fiches de chaque module consignent les paramètres et diagnostics ; elles ne remplacent aucune règle de ce protocole.
 
-**Révision 1.2.1 — 18 novembre 2026 :** clarification du raccordement des loggers, de la propagation, des niveaux/filtres, de l’initialisation et de la prévention des doublons. Ajout du test passant par le logger applicatif réel. Aucun changement du schéma des événements (1.0.0), des routes ou des secrets.
+**Révision 2.0.0 — 18 novembre 2026 :** clarification du raccordement des loggers, de la propagation, des niveaux/filtres, de l’initialisation et de la prévention des doublons. Ajout du test passant par le logger applicatif réel. Aucun changement du schéma des événements (1.0.0), des routes ou des secrets.
+
+## Révision 2.0.0 — uniformisation obligatoire
+
+Cette révision remplace les autorisations de transports alternatifs des révisions 1.x historiques ci-dessus. Une fiche module, un exemple ancien ou un manifeste ne peut pas réintroduire une variante. Toute évolution du transport exige une révision du protocole commun avant adoption, et non un guide propre à un service.
+
+Le protocole de transport reste commun ; seules l'identité, les adresses fournies, les références de secrets et les correspondances de variables historiques diffèrent. Les chemins métriques existants restent déclarés, sans changement métier imposé. Les composants tiers/infrastructure et web-edge gardent leur profil distinct ; ils ne constituent pas une exception pour une API ou un worker DIDDI.
+
+La conformité 2.0.0 exige des preuves datées pour logs, traces et métriques de chaque composant applicable. Les JSON de remise distinguent la cible de l'état réellement observé. Aucune version déployée n'est relevée automatiquement.
+
+La rétention reste centralisée : 14 jours pour les logs staging actuellement configurés. Une conservation sans expiration ou un archivage long terme reste une décision à valider et dimensionner ; cette révision ne l'active pas. Aucun module ne choisit sa propre durée de conservation centrale.
+
+L'exception OTP staging existante reste explicite et temporaire : otp.code et otp.recipient sont acceptés dans le corps des logs DiddiFreeID, jamais comme labels. Elle ne change pas le transport, n'autorise aucun autre secret et ne s'étend pas à la production. La bascule OTLP doit vérifier ce traitement avec des valeurs synthétiques avant activation générale.

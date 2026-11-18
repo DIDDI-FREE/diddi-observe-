@@ -1,12 +1,12 @@
 {
   "handoff_version": "1.0.0",
-  "protocol_version": "1.2.1",
+  "protocol_version": "2.0.0",
   "protocol_reference": "DIDDI-Observability-v1.md",
   "log_schema_version": "1.0.0",
   "service": "diddifree-id",
   "environment": "staging",
   "deployment_id": "diddifree-id-staging",
-  "status": "traces_metrics_received_file_logs_pending",
+  "status": "traces_metrics_received_file_worker_received_otlp_logs_migration_required",
   "owner_contact": null,
   "deployed_sha": null,
   "ingress": {
@@ -27,37 +27,43 @@
   },
   "metrics": {
     "path": "/metrics",
-    "transport": "private-network-scrape",
+    "transport": "prometheus-http-scrape",
     "auth": "bearer",
     "scrape_enabled": true
   },
   "logs": {
-    "transport": "file-jsonl",
-    "volume_name": "diddifree-id-observability-logs-staging",
-    "producer_path": "/var/log/diddifree/observability.jsonl",
-    "collector_mount_mode": "read-only",
-    "central_collection_verified": false
+    "transport": "otlp-http/protobuf",
+    "migration_required": true,
+    "current_transport": "file-jsonl",
+    "central_collection_verified": false,
+    "verification_scope": "target OTLP transport; ID file worker evidence does not validate OTLP logs"
   },
+  "protocol_conformance_verified": false,
   "traces": {
     "central_collection_verified": true
   },
-  "implementation_required": false,
+  "implementation_required": true,
   "verification_date": "2026-11-18",
   "secret_file_reference": "secrets/onboarding/diddifree-id.env",
   "environment_variables": {
     "ENVIRONMENT": "staging",
+    "OTEL_SERVICE_NAME": "diddifree-id",
+    "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
     "OTEL_EXPORTER_OTLP_HEADERS": "",
+    "OTEL_LOGS_ENABLED": "true",
+    "OTEL_EXPORTER_OTLP_ENDPOINT": "http://169.58.70.37:19480/otlp/diddifree-id",
+    "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT": "http://169.58.70.37:19480/otlp/diddifree-id/v1/logs",
+    "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": "http://169.58.70.37:19480/otlp/diddifree-id/v1/traces",
     "DIDDI_DEPLOYMENT_ID": "diddifree-id-staging",
     "METRICS_AUTH_TOKEN": "",
     "OTEL_ENABLED": "true",
-    "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": "http://169.58.70.37:19480/otlp/diddifree-id/v1/traces",
-    "OTEL_EXPORTER_OTLP_CERTIFICATE": "",
-    "OBSERVABILITY_LOG_FILE": "/var/log/diddifree/observability.jsonl",
-    "OBSERVABILITY_LOG_VOLUME_NAME": "diddifree-id-observability-logs-staging"
+    "OTEL_EXPORTER_OTLP_CERTIFICATE": ""
   },
   "notes": [
     "No secrets in this contract. Empty secret values are placeholders, not instructions to erase installed credentials.",
     "HTTP is publicly accessible on port 19480 for this staging MVP; HTTPS is not an activation prerequisite.",
-    "No change to business logic, log schema, metric names or OTP policy."
+    "No change to business logic, log schema, metric names or OTP policy.",
+    "Target configuration, not proof of deployment. ID must migrate file collection to OTLP with a coordinated cutover; preserve installed credentials.",
+    "Existing HTTP staging endpoints remain accepted; HTTPS is available. No automatic URL change."
   ]
 }

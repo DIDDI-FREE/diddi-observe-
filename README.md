@@ -16,7 +16,7 @@ Un [profil synthétique séparé](docs/SYNTHETIC-PILOT.md), `compose.portainer.s
 
 ## Contrat commun des modules
 
-Le [protocole DIDDI Observability v1.2.1](DIDDI-Observability-v1.md) définit les logs, métriques, traces et responsabilités. Le [guide de logs sur fichiers partagés](docs/LOGGING-FILES.md) fournit les variables et exemples Compose communs à tous les modules, avec volumes distincts et lecture seule côté Alloy. Les transports déjà validés peuvent être conservés ; la publication du protocole ne déploie aucune modification des producteurs.
+Le [protocole universel DIDDI Observability 2.0.0](DIDDI-Observability-v1.md) impose OTLP HTTP/protobuf pour les logs et traces de tous les modules applicatifs, et le scrape Prometheus authentifié pour les métriques. La [remise commune](docs/TEAM-HANDOFF.md) contient les paramètres et la migration des intégrations historiques. Les fichiers partagés ne sont plus une alternative conforme ; la collecte ID existante reste transitoire jusqu'à bascule validée. Cette publication ne redéploie aucun producteur.
 
 ## Démarrage local
 

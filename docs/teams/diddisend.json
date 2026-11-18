@@ -1,6 +1,6 @@
 {
   "handoff_version": "1.0.0",
-  "protocol_version": "1.2.1",
+  "protocol_version": "2.0.0",
   "protocol_reference": "DIDDI-Observability-v1.md",
   "log_schema_version": "1.0.0",
   "service": "diddisend",
@@ -27,17 +27,18 @@
   },
   "metrics": {
     "path": "/internal/metrics",
-    "transport": "private-network-scrape",
+    "transport": "prometheus-http-scrape",
     "auth": "bearer",
     "scrape_enabled": true
   },
   "logs": {
-    "transport": "otlp-http",
-    "volume_name": null,
-    "producer_path": null,
-    "collector_mount_mode": null,
-    "central_collection_verified": true
+    "transport": "otlp-http/protobuf",
+    "migration_required": false,
+    "current_transport": "otlp-http/protobuf",
+    "central_collection_verified": true,
+    "verification_scope": "target OTLP transport; ID file worker evidence does not validate OTLP logs"
   },
+  "protocol_conformance_verified": false,
   "traces": {
     "central_collection_verified": true
   },
@@ -46,12 +47,15 @@
   "secret_file_reference": "secrets/onboarding/diddisend.env",
   "environment_variables": {
     "ENVIRONMENT": "staging",
+    "OTEL_SERVICE_NAME": "diddisend",
+    "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
     "OTEL_EXPORTER_OTLP_HEADERS": "",
-    "DEPLOYMENT_ID": "diddisend-staging",
-    "METRICS_BEARER_TOKEN": "",
+    "OTEL_LOGS_ENABLED": "true",
     "OTEL_EXPORTER_OTLP_ENDPOINT": "http://169.58.70.37:19480/otlp/diddisend",
     "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT": "http://169.58.70.37:19480/otlp/diddisend/v1/logs",
-    "OTEL_LOGS_ENABLED": "true",
+    "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": "http://169.58.70.37:19480/otlp/diddisend/v1/traces",
+    "DEPLOYMENT_ID": "diddisend-staging",
+    "METRICS_BEARER_TOKEN": "",
     "OTEL_EXPORTER_OTLP_CA_FILE": "",
     "OTEL_EXPORTER_OTLP_CLIENT_CERTIFICATE_FILE": "",
     "OTEL_EXPORTER_OTLP_CLIENT_KEY_FILE": ""
@@ -59,6 +63,8 @@
   "notes": [
     "No secrets in this contract. Empty secret values are placeholders, not instructions to erase installed credentials.",
     "HTTP is publicly accessible on port 19480 for this staging MVP; HTTPS is not an activation prerequisite.",
-    "No change to business logic, log schema, metric names or OTP policy."
+    "No change to business logic, log schema, metric names or OTP policy.",
+    "Target configuration, not proof of deployment. ID must migrate file collection to OTLP with a coordinated cutover; preserve installed credentials.",
+    "Existing HTTP staging endpoints remain accepted; HTTPS is available. No automatic URL change."
   ]
 }

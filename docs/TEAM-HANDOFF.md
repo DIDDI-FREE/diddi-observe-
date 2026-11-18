@@ -1,21 +1,21 @@
-> État actualisé du 18 novembre : voir [METRICS-STATUS.md](METRICS-STATUS.md). Les diagnostics antérieurs ci-dessous sont historiques ; les JSON de remise sont actualisés.
+# Remise commune aux équipes — protocole 2.0.0
 
-# Remise commune aux équipes
+Référence normative unique : [protocole universel DIDDI](../DIDDI-Observability-v1.md).
+Le nom de fichier historique est conservé pour ne pas casser les liens ; la version normative est 2.0.0.
 
-**Source normative unique : [protocole universel DIDDI Observability v1.2.1](../DIDDI-Observability-v1.md).**
+Tous les modules applicatifs existants et nouveaux utilisent **OTLP HTTP/protobuf pour les logs et traces** et **scrape Prometheus authentifié pour les métriques**. Aucune alternative par volume partagé, collecte stdout ou gRPC n'est conforme pour les applications DIDDI. Les copies locales de dépannage restent possibles sans collecte centrale.
 
-Toutes les équipes suivent sa section 2 pour les transports, les variables, l'implémentation et la validation, ainsi que les sections suivantes pour les formats, métriques, traces et alertes. Il n'existe pas de protocole propre à DiddiGo ou DiddiSend.
+Les paramètres varient par service, jamais les règles. Les JSON sont des configurations cibles sans secrets, pas des preuves de conformité. Ne pas remplacer un secret installé par un champ vide.
 
-Les fiches ci-dessous complètent le protocole avec l'identité, les paramètres, les correspondances de variables historiques et l'état de chaque module. Leurs secrets sont transmis séparément et ne sont jamais versionnés.
+| Module | Paramètres | État observé / action |
+| --- | --- | --- |
+| DiddiSend | [JSON](teams/diddisend.json) | Logs/traces OTLP et métriques reçus ; vérifier la checklist 2.0.0 |
+| DiddiGo | [JSON](teams/diddigo.json) | Logs/traces OTLP et métriques reçus ; vérifier la checklist 2.0.0 |
+| DiddiFreeID | [JSON](teams/diddifree-id.json) | Traces/métriques reçues, logs worker reçus par fichier ; migration OTLP logs requise |
 
-| Module | Fiche | Paramètres JSON | Dernier état vérifié le 17 novembre 2026 |
-| --- | --- | --- | --- |
-| DiddiSend | [Fiche](DIDDISEND-HANDOFF.md) | [JSON](teams/diddisend.json) | Logs et traces reçus ; scrape métriques activé le 18 novembre 2026 |
-| DiddiGo | [Fiche](DIDDIGO-HANDOFF.md) | [JSON](teams/diddigo.json) | Routes HTTP/HTTPS prêtes ; exporteur et passage Compose à implémenter |
-| DiddiFree ID | [Fiche](DIDDIFREE-ID-HANDOFF.md) | [JSON](teams/diddifree-id.json) | Profil fichier conservé ; collecte JSONL centrale et réception de traces non validées |
+[Message de migration DiddiFreeID](teams/DIDDIFREE-ID-MIGRATION-OTLP.md).
+[Migration commune](teams/MIGRATION-V1.md).
+[État opérationnel historique](METRICS-STATUS.md).
 
-[Migration des intégrations existantes](teams/MIGRATION-V1.md). Publier ces documents ne modifie ni ne redéploie les modules.
-
-## Vérification demandée à toutes les équipes — v1.2.1
-
-Appliquer le test de raccordement des loggers décrit en section 2.3.1 du protocole. Vérifier le chemin réel des événements jusqu’au handler/exporteur, les niveaux, filtres et propagations avec la configuration du serveur déployé. Corriger seulement les intégrations qui échouent à ce test ; conserver celles dont les logs arrivent déjà correctement sans doublons. Aucun changement de token ou d’URL requis.
+La conformité exige réception réelle de chaque signal applicable et validation séparée API/worker, identité correcte, absence de doublons, respect des règles de données et fonctionnement du métier en cas de panne de collecte.
+La publication ne modifie aucun déploiement, secret, montage ou délai de conservation.

@@ -29,9 +29,15 @@ class TeamHandoffTests(unittest.TestCase):
         self.assertTrue(c['environment_variables']['OTEL_EXPORTER_OTLP_ENDPOINT'].endswith('/diddigo'))
         self.assertEqual(c['metrics']['path'],'/metrics')
 
-    def test_module_transport_is_preserved(self):
-        self.assertEqual(team_handoff.contract('diddifree-id')['logs']['transport'],'file-jsonl')
-        self.assertEqual(team_handoff.contract('diddisend')['logs']['transport'],'otlp-http')
+    def test_uniform_transport_and_honest_migration_status(self):
+        for service in ('diddifree-id','diddisend','diddigo'):
+            c = team_handoff.contract(service)
+            self.assertEqual(c['logs']['transport'],'otlp-http/protobuf')
+            self.assertEqual(c['environment_variables']['OTEL_EXPORTER_OTLP_PROTOCOL'],'http/protobuf')
+            self.assertNotIn('OBSERVABILITY_LOG_FILE', c['environment_variables'])
+            self.assertFalse(c['protocol_conformance_verified'])
+        self.assertTrue(team_handoff.contract('diddifree-id')['logs']['migration_required'])
+        self.assertEqual(team_handoff.contract('diddisend')['logs']['transport'],'otlp-http/protobuf')
 
     def test_env_migration_preserves_credentials_and_unrelated_settings(self):
         with tempfile.TemporaryDirectory() as d, patch.object(team_handoff,'ROOT',Path(d)):

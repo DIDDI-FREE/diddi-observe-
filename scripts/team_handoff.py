@@ -8,44 +8,50 @@ ROOT = Path(__file__).resolve().parents[1]
 def settings(service):
     if service not in ('diddifree-id','diddisend','diddigo'):
         raise ValueError('Unknown service: '+service)
-    common = {'ENVIRONMENT':'staging', 'OTEL_EXPORTER_OTLP_HEADERS':''}
+    common = {
+        'ENVIRONMENT':'staging', 'OTEL_SERVICE_NAME':service,
+        'OTEL_EXPORTER_OTLP_PROTOCOL':'http/protobuf',
+        'OTEL_EXPORTER_OTLP_HEADERS':'', 'OTEL_LOGS_ENABLED':'true',
+        'OTEL_EXPORTER_OTLP_ENDPOINT':'http://169.58.70.37:19480/otlp/'+service,
+        'OTEL_EXPORTER_OTLP_LOGS_ENDPOINT':'http://169.58.70.37:19480/otlp/'+service+'/v1/logs',
+        'OTEL_EXPORTER_OTLP_TRACES_ENDPOINT':'http://169.58.70.37:19480/otlp/'+service+'/v1/traces',
+    }
     if service == 'diddifree-id':
-        common.update(DIDDI_DEPLOYMENT_ID='diddifree-id-staging', METRICS_AUTH_TOKEN='',
-                      OTEL_ENABLED='true', OTEL_EXPORTER_OTLP_TRACES_ENDPOINT='http://169.58.70.37:19480/otlp/diddifree-id/v1/traces',
-                      OTEL_EXPORTER_OTLP_CERTIFICATE='',
-                      OBSERVABILITY_LOG_FILE='/var/log/diddifree/observability.jsonl',
-                      OBSERVABILITY_LOG_VOLUME_NAME='diddifree-id-observability-logs-staging')
+        common.update(DIDDI_DEPLOYMENT_ID=service+'-staging', METRICS_AUTH_TOKEN='',
+                      OTEL_ENABLED='true', OTEL_EXPORTER_OTLP_CERTIFICATE='')
     else:
         common.update(DEPLOYMENT_ID=service+'-staging', METRICS_BEARER_TOKEN='',
-                      OTEL_EXPORTER_OTLP_ENDPOINT='http://169.58.70.37:19480/otlp/'+service, OTEL_EXPORTER_OTLP_LOGS_ENDPOINT='http://169.58.70.37:19480/otlp/'+service+'/v1/logs',
-                      OTEL_LOGS_ENABLED='true', OTEL_EXPORTER_OTLP_CA_FILE='',
-                      OTEL_EXPORTER_OTLP_CLIENT_CERTIFICATE_FILE='', OTEL_EXPORTER_OTLP_CLIENT_KEY_FILE='')
+                      OTEL_EXPORTER_OTLP_CA_FILE='', OTEL_EXPORTER_OTLP_CLIENT_CERTIFICATE_FILE='',
+                      OTEL_EXPORTER_OTLP_CLIENT_KEY_FILE='')
     return common
 
 def contract(service):
     return {
-        'handoff_version':'1.0.0', 'protocol_version':'1.2.1', 'protocol_reference':'DIDDI-Observability-v1.md', 'log_schema_version':'1.0.0',
+        'handoff_version':'1.0.0', 'protocol_version':'2.0.0', 'protocol_reference':'DIDDI-Observability-v1.md', 'log_schema_version':'1.0.0',
         'service':service, 'environment':'staging', 'deployment_id':service+'-staging',
-        'status':'logs_traces_metrics_received' if service in ('diddisend','diddigo') else 'traces_metrics_received_file_logs_pending', 'owner_contact':None, 'deployed_sha':None,
+        'status':'logs_traces_metrics_received' if service in ('diddisend','diddigo') else 'traces_metrics_received_file_worker_received_otlp_logs_migration_required', 'owner_contact':None, 'deployed_sha':None,
         'ingress':{'base_url':'http://169.58.70.37:19480', 'proxy':'public IP gateway', 'public_ingress_verified':True,
                    'https_base_url':'https://logs-otel.diddifree.com', 'https_requires_custom_ca':False,
                    'tls':{'enabled':False,'verify':True,'trust':'system-public-ca-when-https','custom_ca_required':False,'client_certificate_required':False},
                    'traces_path':'/otlp/'+service+'/v1/traces', 'logs_path':'/otlp/'+service+'/v1/logs'},
         'metrics':{'path':'/metrics' if service in ('diddifree-id','diddigo') else '/internal/metrics',
-                   'transport':'private-network-scrape','auth':'bearer','scrape_enabled':True},
-        'logs':{'transport':'file-jsonl' if service=='diddifree-id' else 'otlp-http',
-                'volume_name':'diddifree-id-observability-logs-staging' if service=='diddifree-id' else None,
-                'producer_path':'/var/log/diddifree/observability.jsonl' if service=='diddifree-id' else None,
-                'collector_mount_mode':'read-only' if service=='diddifree-id' else None,
-                'central_collection_verified':service in ('diddisend','diddigo')},
+                   'transport':'prometheus-http-scrape','auth':'bearer','scrape_enabled':True},
+        'logs':{'transport':'otlp-http/protobuf',
+                'migration_required':service=='diddifree-id',
+                'current_transport':'file-jsonl' if service=='diddifree-id' else 'otlp-http/protobuf',
+                'central_collection_verified':service in ('diddisend','diddigo'),
+                'verification_scope':'target OTLP transport; ID file worker evidence does not validate OTLP logs'},
+        'protocol_conformance_verified':False,
         'traces':{'central_collection_verified':True},
-        'implementation_required':False,
+        'implementation_required':service=='diddifree-id',
         'verification_date':'2026-11-18',
         'secret_file_reference':'secrets/onboarding/'+service+'.env',
         'environment_variables':settings(service),
         'notes':['No secrets in this contract. Empty secret values are placeholders, not instructions to erase installed credentials.',
                  'HTTP is publicly accessible on port 19480 for this staging MVP; HTTPS is not an activation prerequisite.',
-                 'No change to business logic, log schema, metric names or OTP policy.'],
+                 'No change to business logic, log schema, metric names or OTP policy.',
+                 'Target configuration, not proof of deployment. ID must migrate file collection to OTLP with a coordinated cutover; preserve installed credentials.',
+                 'Existing HTTP staging endpoints remain accepted; HTTPS is available. No automatic URL change.'],
     }
 
 def outputs():
