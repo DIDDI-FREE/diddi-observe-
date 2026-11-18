@@ -29,7 +29,7 @@
     "path": "/internal/metrics",
     "transport": "private-network-scrape",
     "auth": "bearer",
-    "scrape_enabled": false
+    "scrape_enabled": true
   },
   "logs": {
     "transport": "otlp-http",

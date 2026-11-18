@@ -8,7 +8,7 @@ Les fiches ci-dessous complètent le protocole avec l'identité, les paramètres
 
 | Module | Fiche | Paramètres JSON | Dernier état vérifié le 17 novembre 2026 |
 | --- | --- | --- | --- |
-| DiddiSend | [Fiche](DIDDISEND-HANDOFF.md) | [JSON](teams/diddisend.json) | Logs et traces reçus ; scrape métriques désactivé |
+| DiddiSend | [Fiche](DIDDISEND-HANDOFF.md) | [JSON](teams/diddisend.json) | Logs et traces reçus ; scrape métriques activé le 18 novembre 2026 |
 | DiddiGo | [Fiche](DIDDIGO-HANDOFF.md) | [JSON](teams/diddigo.json) | Routes HTTP/HTTPS prêtes ; exporteur et passage Compose à implémenter |
 | DiddiFree ID | [Fiche](DIDDIFREE-ID-HANDOFF.md) | [JSON](teams/diddifree-id.json) | Profil fichier conservé ; collecte JSONL centrale et réception de traces non validées |
 

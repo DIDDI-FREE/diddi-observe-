@@ -32,7 +32,7 @@ def contract(service):
                    'tls':{'enabled':False,'verify':True,'trust':'system-public-ca-when-https','custom_ca_required':False,'client_certificate_required':False},
                    'traces_path':'/otlp/'+service+'/v1/traces', 'logs_path':'/otlp/'+service+'/v1/logs'},
         'metrics':{'path':'/metrics' if service in ('diddifree-id','diddigo') else '/internal/metrics',
-                   'transport':'private-network-scrape','auth':'bearer','scrape_enabled':False},
+                   'transport':'private-network-scrape','auth':'bearer','scrape_enabled':service=='diddisend'},
         'logs':{'transport':'file-jsonl' if service=='diddifree-id' else 'otlp-http',
                 'volume_name':'diddifree-id-observability-logs-staging' if service=='diddifree-id' else None,
                 'producer_path':'/var/log/diddifree/observability.jsonl' if service=='diddifree-id' else None,
