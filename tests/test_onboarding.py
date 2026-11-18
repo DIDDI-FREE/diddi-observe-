@@ -6,6 +6,8 @@ import yaml
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
 import onboarding_profile
 import portainer
+import render
+import copy
 
 class OnboardingTests(unittest.TestCase):
     def test_only_authorized_routes_and_health(self):
@@ -15,14 +17,18 @@ class OnboardingTests(unittest.TestCase):
             if s['id'] in ('diddisend', 'diddifree-id'):
                 self.assertTrue(s['otlp']['enabled'])
                 self.assertTrue(s['health']['enabled'])
-                self.assertEqual(s['metrics']['enabled'], s['id'] == 'diddisend')
+                self.assertTrue(s['metrics']['enabled'])
                 self.assertFalse(s['logs']['enabled'])
                 self.assertEqual(s['state'], 'inventoried')
                 for signal in ('logs', 'traces'):
                     self.assertIn('location = /otlp/' + s['id'] + '/v1/' + signal, output['config/onboarding/nginx.conf'])
             elif s['id'] == 'diddigo':
                 self.assertTrue(s['otlp']['enabled'])
-                self.assertFalse(any(s[k]['enabled'] for k in ('health','metrics','logs')))
+                self.assertTrue(s['metrics']['enabled'])
+                self.assertFalse(any(s[k]['enabled'] for k in ('health','logs')))
+            elif s['id'] in ('diddipay','diddicomms'):
+                self.assertTrue(s['metrics']['enabled'])
+                self.assertFalse(any(s[k]['enabled'] for k in ('health','otlp','logs')))
             elif s['id'] != 'synthetic':
                 self.assertFalse(any(s[k]['enabled'] for k in ('otlp','health','metrics','logs')))
         self.assertEqual(output['config/onboarding/nginx.conf'].count('location = /synthetic-test'), 1)
@@ -48,6 +54,18 @@ class OnboardingTests(unittest.TestCase):
             else:
                 self.assertNotIn('source-id', s.get('networks', []))
                 self.assertNotIn('source-send', s.get('networks', []))
+
+    def test_public_http_exception_is_staging_only(self):
+        registry = json.loads(onboarding_profile.outputs()['config/onboarding/services.json'])
+        go = next(s for s in registry['services'] if s['id'] == 'diddigo')
+        render.validate(registry)
+        go['environment'] = 'production'
+        with self.assertRaises(ValueError):
+            render.validate(registry)
+        go['environment'] = 'staging'
+        go['metrics'].pop('public_http_mvp')
+        with self.assertRaises(ValueError):
+            render.validate(registry)
 
     def test_generated_current(self):
         for name, content in onboarding_profile.outputs().items():

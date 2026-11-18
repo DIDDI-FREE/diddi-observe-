@@ -64,6 +64,20 @@ scrape_configs:
       component: blackbox
       environment: staging
       deployment_id: observe-local
+- job_name: service-diddifree-id
+  scheme: http
+  metrics_path: /metrics
+  sample_limit: 20000
+  authorization:
+    credentials_file: /run/secrets/diddifree-id.metrics
+  static_configs:
+  - targets:
+    - 169.58.70.37:18010
+    labels:
+      service_name: diddifree-id
+      environment: staging
+      deployment_id: diddifree-id-staging
+      component: api
 - job_name: health-diddifree-id
   scrape_interval: 30s
   metrics_path: /probe
@@ -87,6 +101,20 @@ scrape_configs:
     target_label: instance
   - target_label: __address__
     replacement: diddi-observe-blackbox-1:9115
+- job_name: service-diddigo
+  scheme: http
+  metrics_path: /metrics
+  sample_limit: 20000
+  authorization:
+    credentials_file: /run/secrets/diddigo.metrics
+  static_configs:
+  - targets:
+    - 169.58.70.37:18000
+    labels:
+      service_name: diddigo
+      environment: staging
+      deployment_id: diddigo-staging
+      component: api
 - job_name: service-diddisend
   scheme: http
   metrics_path: /internal/metrics
@@ -124,6 +152,34 @@ scrape_configs:
     target_label: instance
   - target_label: __address__
     replacement: diddi-observe-blackbox-1:9115
+- job_name: service-diddipay
+  scheme: http
+  metrics_path: /internal/metrics
+  sample_limit: 20000
+  authorization:
+    credentials_file: /run/secrets/diddipay.metrics
+  static_configs:
+  - targets:
+    - 169.58.70.37:48213
+    labels:
+      service_name: diddipay
+      environment: staging
+      deployment_id: diddipay-staging
+      component: api
+- job_name: service-diddicomms
+  scheme: http
+  metrics_path: /internal/metrics
+  sample_limit: 20000
+  authorization:
+    credentials_file: /run/secrets/diddicomms.metrics
+  static_configs:
+  - targets:
+    - 169.58.70.37:8040
+    labels:
+      service_name: diddicomms
+      environment: staging
+      deployment_id: diddicomms-staging
+      component: api
 - job_name: service-synthetic
   scheme: http
   metrics_path: /metrics

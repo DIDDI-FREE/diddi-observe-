@@ -26,6 +26,20 @@ def outputs():
         service['otlp']['enabled'] = True
         service['health'] = dict(enabled=True, url='http://' + host + health, isolated_network=True)
         service['metrics'].update(enabled=service['id'] == 'diddisend', url='http://' + host + metrics, isolated_network=True)
+    # Public endpoints explicitly authorized for the staging MVP.
+    public_metrics = {
+        'diddifree-id': (18010, '/metrics'),
+        'diddigo': (18000, '/metrics'),
+        'diddipay': (48213, '/internal/metrics'),
+        'diddicomms': (8040, '/internal/metrics'),
+    }
+    for service in registry['services']:
+        if service['id'] in public_metrics:
+            port, path = public_metrics[service['id']]
+            service['owner'] = service['id'] + ' team'
+            service['metrics'].update(enabled=True, auth='bearer',
+                url='http://169.58.70.37:' + str(port) + path,
+                isolated_network=False, public_http_mvp=True)
     render.validate(registry)
     # Retain the authenticated synthetic exercise route used by the smoke test.
     nginx = render.nginx(registry)

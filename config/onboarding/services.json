@@ -7,15 +7,16 @@
       "environment": "staging",
       "deployment_id": "diddifree-id-staging",
       "component": "api",
-      "owner": "DiddiFreeID team",
+      "owner": "diddifree-id team",
       "state": "inventoried",
       "evidence": [],
       "metrics": {
-        "enabled": false,
+        "enabled": true,
         "auth": "bearer",
         "known_path": "/metrics",
-        "url": "http://diddi-auth-app-1:8000/metrics",
-        "isolated_network": true
+        "url": "http://169.58.70.37:18010/metrics",
+        "isolated_network": false,
+        "public_http_mvp": true
       },
       "otlp": {
         "enabled": true
@@ -35,13 +36,16 @@
       "environment": "staging",
       "deployment_id": "diddigo-staging",
       "component": "api",
-      "owner": "DiddiGo team",
+      "owner": "diddigo team",
       "state": "inventoried",
       "evidence": [],
       "metrics": {
-        "enabled": false,
+        "enabled": true,
         "auth": "bearer",
-        "known_path": "/metrics"
+        "known_path": "/metrics",
+        "url": "http://169.58.70.37:18000/metrics",
+        "isolated_network": false,
+        "public_http_mvp": true
       },
       "otlp": {
         "enabled": true
@@ -87,13 +91,16 @@
       "environment": "staging",
       "deployment_id": "diddipay-staging",
       "component": "api",
-      "owner": "",
+      "owner": "diddipay team",
       "state": "inventoried",
       "evidence": [],
       "metrics": {
-        "enabled": false,
+        "enabled": true,
         "auth": "bearer",
-        "known_path": "/internal/metrics"
+        "known_path": "/internal/metrics",
+        "url": "http://169.58.70.37:48213/internal/metrics",
+        "isolated_network": false,
+        "public_http_mvp": true
       },
       "otlp": {
         "enabled": false
@@ -111,13 +118,16 @@
       "environment": "staging",
       "deployment_id": "diddicomms-staging",
       "component": "api",
-      "owner": "",
+      "owner": "diddicomms team",
       "state": "inventoried",
       "evidence": [],
       "metrics": {
-        "enabled": false,
+        "enabled": true,
         "auth": "bearer",
-        "known_path": "/internal/metrics"
+        "known_path": "/internal/metrics",
+        "url": "http://169.58.70.37:8040/internal/metrics",
+        "isolated_network": false,
+        "public_http_mvp": true
       },
       "otlp": {
         "enabled": false

@@ -35,7 +35,7 @@ def validate(data):
             u = urlparse(cfg['url'])
             if u.scheme not in ('https', 'http') or not u.hostname or u.username or u.password or u.query or u.fragment:
                 raise ValueError('Invalid collection URL')
-            if u.scheme == 'http' and not cfg.get('isolated_network'):
+            if u.scheme == 'http' and not cfg.get('isolated_network') and not (s['environment'] == 'staging' and cfg.get('public_http_mvp') is True):
                 raise ValueError('HTTP requires an explicitly isolated network')
             if signal == 'metrics' and cfg.get('auth') != 'bearer':
                 raise ValueError('Metrics require bearer auth')
