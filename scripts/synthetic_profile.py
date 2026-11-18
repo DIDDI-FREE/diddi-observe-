@@ -25,6 +25,8 @@ def outputs():
     }
     location /otlp/''')
     config = yaml.safe_load(portainer.render())
+    config['services']['alloy']['volumes'].remove('id-observability-logs:/var/log/diddifree:ro')
+    config['volumes'].pop('id-observability-logs')
     for name in ('prometheus', 'alloy', 'gateway', 'registry', 'init-storage'):
         config['services'][name]['build']['target'] = 'synthetic-' + name
     config['services']['synthetic'] = portainer.pilot_service()

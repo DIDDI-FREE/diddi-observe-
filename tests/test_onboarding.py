@@ -18,7 +18,7 @@ class OnboardingTests(unittest.TestCase):
                 self.assertTrue(s['otlp']['enabled'])
                 self.assertTrue(s['health']['enabled'])
                 self.assertTrue(s['metrics']['enabled'])
-                self.assertFalse(s['logs']['enabled'])
+                self.assertEqual(s['logs']['enabled'], s['id'] == 'diddifree-id')
                 self.assertEqual(s['state'], 'inventoried')
                 for signal in ('logs', 'traces'):
                     self.assertIn('location = /otlp/' + s['id'] + '/v1/' + signal, output['config/onboarding/nginx.conf'])
@@ -70,3 +70,18 @@ class OnboardingTests(unittest.TestCase):
     def test_generated_current(self):
         for name, content in onboarding_profile.outputs().items():
             self.assertEqual((onboarding_profile.ROOT / name).read_text(), content)
+
+    def test_id_file_scope_and_storage(self):
+        registry = json.loads(onboarding_profile.outputs()['config/onboarding/services.json'])
+        identity = next(s for s in registry['services'] if s['id'] == 'diddifree-id')
+        self.assertEqual([s['path'] for s in identity['logs']['sources']],
+                         ['/var/log/diddifree/observability-api.jsonl', '/var/log/diddifree/observability-worker.jsonl'])
+        cfg = yaml.safe_load(portainer.render())
+        alloy = cfg['services']['alloy']
+        self.assertIn('id-observability-logs:/var/log/diddifree:ro', alloy['volumes'])
+        self.assertIn('alloy-data:/var/lib/alloy', alloy['volumes'])
+        self.assertIn('--storage.path=/var/lib/alloy', alloy['command'])
+        self.assertNotIn('docker.sock', portainer.render())
+        identity['logs']['sources'][0]['path'] += '.1'
+        with self.assertRaises(ValueError):
+            render.validate(registry)

@@ -30,6 +30,10 @@ def render():
     grafana['environment']['GF_SECURITY_ADMIN_PASSWORD'] = '${GRAFANA_ADMIN_PASSWORD:?Set Grafana initial admin password}'
     grafana['environment']['GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH'] = '/opt/diddi/dashboards/platform.json'
     services['alloy']['volumes'].append('log-inputs:/var/log/inputs:ro')
+    services['alloy']['volumes'].append('id-observability-logs:/var/log/diddifree:ro')
+    config['volumes']['id-observability-logs'] = {
+        'name': 'diddifree-id-observability-logs-staging', 'external': True,
+    }
     services['gateway']['volumes'] += ['gateway-secret:/etc/nginx/tls:ro', 'gateway-secret:/etc/nginx/auth:ro']
     services['gateway']['ports'].append('${OBSERVE_HTTP_BIND:-0.0.0.0}:${OBSERVE_HTTP_PORT:-19480}:8080')
     services['prometheus']['volumes'].append('metrics-secret:/run/secrets:ro')

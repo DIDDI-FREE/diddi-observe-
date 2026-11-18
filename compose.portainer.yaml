@@ -116,6 +116,7 @@ services:
     volumes:
     - alloy-data:/var/lib/alloy
     - log-inputs:/var/log/inputs:ro
+    - id-observability-logs:/var/log/diddifree:ro
     logging:
       driver: json-file
       options:
@@ -297,6 +298,9 @@ volumes:
   loki-data: {}
   tempo-data: {}
   alloy-data: {}
+  id-observability-logs:
+    name: diddifree-id-observability-logs-staging
+    external: true
   gateway-secret: {}
   metrics-secret: {}
   log-inputs: {}

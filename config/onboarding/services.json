@@ -22,7 +22,18 @@
         "enabled": true
       },
       "logs": {
-        "enabled": false
+        "enabled": true,
+        "otp_policy": "allow-staging",
+        "sources": [
+          {
+            "path": "/var/log/diddifree/observability-api.jsonl",
+            "component": "api"
+          },
+          {
+            "path": "/var/log/diddifree/observability-worker.jsonl",
+            "component": "worker"
+          }
+        ]
       },
       "health": {
         "enabled": true,

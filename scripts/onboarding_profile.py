@@ -40,6 +40,12 @@ def outputs():
             service['metrics'].update(enabled=True, auth='bearer',
                 url='http://169.58.70.37:' + str(port) + path,
                 isolated_network=False, public_http_mvp=True)
+    identity = next(s for s in registry['services'] if s['id'] == 'diddifree-id')
+    identity['logs'] = {
+        'enabled': True, 'otp_policy': 'allow-staging',
+        'sources': [{'path': '/var/log/diddifree/observability-' + component + '.jsonl',
+                     'component': component} for component in ('api', 'worker')],
+    }
     render.validate(registry)
     # Retain the authenticated synthetic exercise route used by the smoke test.
     nginx = render.nginx(registry)

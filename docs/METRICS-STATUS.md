@@ -24,6 +24,24 @@ Un 404 sur `/metrics` ne prouve pas l'absence de toute instrumentation : un autr
 
 ## Autres signaux
 
-DiddiGo : logs et traces récents reçus. DiddiFree ID : traces récentes reçues ; son volume `diddifree-id-observability-logs-staging` est monté côté producteur, mais le collecteur central ne le monte pas encore : aucun log ID reçu. L'URL de traces actuellement installée dans ID utilise encore le nom Docker interne ; l'équipe peut appliquer la base publique du protocole sans modifier les identifiants.
+DiddiGo : logs et traces récents reçus. DiddiFree ID : traces récentes reçues ; collecte des deux fichiers actifs configurée côté central. Réception à vérifier après déploiement ; l'API force encore observability.jsonl via OBSERVABILITY_LOG_FILE. L'URL de traces actuellement installée dans ID utilise encore le nom Docker interne ; l'équipe peut appliquer la base publique du protocole sans modifier les identifiants.
 
 Le protocole universel reste la référence : [DIDDI Observability](../DIDDI-Observability-v1.md). Ce fichier est un état opérationnel, pas un protocole par module.
+
+## Collecte fichiers ID — 18 novembre 2026
+
+Volume externe `diddifree-id-observability-logs-staging` monté uniquement dans Alloy à
+`/var/log/diddifree:ro`, sans socket Docker. Seuls `observability-api.jsonl` et
+`observability-worker.jsonl` sont lus, avec les labels component=api et component=worker.
+Le fichier historique et les archives .1 à .5 ne sont pas sélectionnés.
+Les positions sont conservées dans le volume existant `alloy-data`, sous
+`/var/lib/alloy/loki.source.file.diddifree_id_api` et
+`/var/lib/alloy/loki.source.file.diddifree_id_worker`. Ne pas supprimer ce volume
+ni renommer ces composants lors des redéploiements.
+Voir [le fonctionnement des positions Alloy](https://grafana.com/docs/alloy/latest/reference/components/loki/loki.source.file/).
+
+Exception temporaire explicite : `logs.otp_policy=allow-staging` accepte
+`otp.code` et `otp.recipient` dans le corps JSON, conformément au choix de staging.
+Ces champs ne deviennent pas des labels. Les filtres existants pour mots de passe,
+tokens et cookies restent actifs. Cette exception est refusée hors staging.
+Le collecteur ne modifie pas `OTP_LOG_PLAINTEXT` côté producteur.

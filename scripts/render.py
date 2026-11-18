@@ -39,6 +39,12 @@ def validate(data):
                 raise ValueError('HTTP requires an explicitly isolated network')
             if signal == 'metrics' and cfg.get('auth') != 'bearer':
                 raise ValueError('Metrics require bearer auth')
+        logs = s.get('logs', {})
+        if logs.get('otp_policy') == 'allow-staging' and s['environment'] != 'staging':
+            raise ValueError('Plaintext OTP exception is staging only')
+        for source in logs.get('sources', []):
+            if not re.fullmatch(r'/var/log/[a-z0-9/-]+[.]jsonl', source['path']) or not re.fullmatch(r'[a-z][a-z0-9-]*', source['component']):
+                raise ValueError('File sources require exact active JSONL paths and a valid component')
         if any(s.get(k, {}).get('enabled') for k in ('metrics', 'health', 'otlp', 'logs')):
             if s['environment'] == 'unknown' or not s.get('owner'):
                 raise ValueError('Enabled service needs owner and environment')
@@ -174,16 +180,21 @@ otelcol.processor.transform "{ident}" {{
 }}
 '''.replace('\\"','\\"'))
         if s.get('logs', {}).get('enabled'):
-            trusted = json.dumps(labels(s)).replace(': ', ' = ')
-            parts.append(f'''
-local.file_match "{ident}" {{
-  path_targets = [{{__path__ = "/var/log/inputs/{s['id']}/*.log"}}]
+            sources = s['logs'].get('sources', [{'path': '/var/log/inputs/' + s['id'] + '/*.log', 'component': s['component']}])
+            for source in sources:
+                file_ident = ident + '_' + source['component'] if 'sources' in s['logs'] else ident
+                trusted = json.dumps(dict(labels(s), component=source['component'])).replace(': ', ' = ')
+                # Explicit staging exception preserves otp.code and otp.recipient.
+                otp_pattern = '' if s['logs'].get('otp_policy') == 'allow-staging' else '|otp'
+                parts.append(f'''
+local.file_match "{file_ident}" {{
+  path_targets = [{{__path__ = {json.dumps(source["path"])}}}]
 }}
-loki.source.file "{ident}" {{
-  targets = local.file_match.{ident}.targets
-  forward_to = [loki.process.{ident}.receiver]
+loki.source.file "{file_ident}" {{
+  targets = local.file_match.{file_ident}.targets
+  forward_to = [loki.process.{file_ident}.receiver]
 }}
-loki.process "{ident}" {{
+loki.process "{file_ident}" {{
   stage.json {{
     expressions = {{ timestamp = "timestamp || ts || at", level = "level", trace_id = "trace_id" }}
     drop_malformed = true
@@ -194,7 +205,7 @@ loki.process "{ident}" {{
     action_on_failure = "skip"
   }}
   stage.replace {{
-    expression = `(?i)"(?:password|secret|token|authorization|cookie|otp|pin)"\\s*:\\s*"([^"\\\\]*(?:\\\\.[^"\\\\]*)*)"`
+    expression = `(?i)"(?:password|secret|token|authorization|cookie{otp_pattern}|pin)"\\s*:\\s*"([^"\\\\]*(?:\\\\.[^"\\\\]*)*)"`
     replace = "[REDACTED]"
   }}
   stage.static_labels {{ values = {trusted} }}

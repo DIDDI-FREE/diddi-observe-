@@ -92,6 +92,60 @@ otelcol.processor.transform "diddifree_id" {
 }
 
 
+local.file_match "diddifree_id_api" {
+  path_targets = [{__path__ = "/var/log/diddifree/observability-api.jsonl"}]
+}
+loki.source.file "diddifree_id_api" {
+  targets = local.file_match.diddifree_id_api.targets
+  forward_to = [loki.process.diddifree_id_api.receiver]
+}
+loki.process "diddifree_id_api" {
+  stage.json {
+    expressions = { timestamp = "timestamp || ts || at", level = "level", trace_id = "trace_id" }
+    drop_malformed = true
+  }
+  stage.timestamp {
+    source = "timestamp"
+    format = "RFC3339Nano"
+    action_on_failure = "skip"
+  }
+  stage.replace {
+    expression = `(?i)"(?:password|secret|token|authorization|cookie|pin)"\s*:\s*"([^"\\]*(?:\\.[^"\\]*)*)"`
+    replace = "[REDACTED]"
+  }
+  stage.static_labels { values = {"service_name" = "diddifree-id", "environment" = "staging", "deployment_id" = "diddifree-id-staging", "component" = "api"} }
+  stage.label_drop { values = ["filename"] }
+  forward_to = [loki.write.central.receiver]
+}
+
+
+local.file_match "diddifree_id_worker" {
+  path_targets = [{__path__ = "/var/log/diddifree/observability-worker.jsonl"}]
+}
+loki.source.file "diddifree_id_worker" {
+  targets = local.file_match.diddifree_id_worker.targets
+  forward_to = [loki.process.diddifree_id_worker.receiver]
+}
+loki.process "diddifree_id_worker" {
+  stage.json {
+    expressions = { timestamp = "timestamp || ts || at", level = "level", trace_id = "trace_id" }
+    drop_malformed = true
+  }
+  stage.timestamp {
+    source = "timestamp"
+    format = "RFC3339Nano"
+    action_on_failure = "skip"
+  }
+  stage.replace {
+    expression = `(?i)"(?:password|secret|token|authorization|cookie|pin)"\s*:\s*"([^"\\]*(?:\\.[^"\\]*)*)"`
+    replace = "[REDACTED]"
+  }
+  stage.static_labels { values = {"service_name" = "diddifree-id", "environment" = "staging", "deployment_id" = "diddifree-id-staging", "component" = "worker"} }
+  stage.label_drop { values = ["filename"] }
+  forward_to = [loki.write.central.receiver]
+}
+
+
 otelcol.receiver.otlp "diddigo" {
   http { endpoint = "0.0.0.0:4401" }
   output {
