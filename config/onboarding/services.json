@@ -114,7 +114,7 @@
         "public_http_mvp": true
       },
       "otlp": {
-        "enabled": false
+        "enabled": true
       },
       "logs": {
         "enabled": false

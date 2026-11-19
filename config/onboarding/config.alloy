@@ -234,6 +234,50 @@ otelcol.processor.transform "diddisend" {
 }
 
 
+otelcol.receiver.otlp "diddipay" {
+  http { endpoint = "0.0.0.0:4403" }
+  output {
+    traces = [otelcol.processor.transform.diddipay.input]
+    logs = [otelcol.processor.transform.diddipay.input]
+  }
+}
+otelcol.processor.transform "diddipay" {
+  error_mode = "propagate"
+  trace_statements {
+    context = "resource"
+    statements = ["set(attributes[\"service.namespace\"], \"diddi\")",
+      "set(attributes[\"service.name\"], \"diddipay\")",
+      "set(attributes[\"deployment.environment.name\"], \"staging\")",
+      "set(attributes[\"diddi.deployment.id\"], \"diddipay-staging\")",
+      "set(attributes[\"diddi.component\"], \"api\")"]
+  }
+  log_statements {
+    context = "resource"
+    statements = ["set(attributes[\"service.namespace\"], \"diddi\")",
+      "set(attributes[\"service.name\"], \"diddipay\")",
+      "set(attributes[\"deployment.environment.name\"], \"staging\")",
+      "set(attributes[\"diddi.deployment.id\"], \"diddipay-staging\")",
+      "set(attributes[\"diddi.component\"], \"api\")"]
+  }
+  trace_statements {
+    context = "span"
+    statements = [
+      "delete_matching_keys(attributes, \"(?i).*?(authorization|password|secret|token|cookie|email|phone|url.full|db.statement).*\")",
+    ]
+  }
+  log_statements {
+    context = "log"
+    statements = [
+      "delete_matching_keys(attributes, \"(?i).*?(authorization|password|secret|token|cookie|email|phone).*\")",
+    ]
+  }
+  output {
+    traces = [otelcol.processor.memory_limiter.bounded.input]
+    logs = [otelcol.processor.memory_limiter.bounded.input]
+  }
+}
+
+
 otelcol.receiver.otlp "synthetic" {
   http { endpoint = "0.0.0.0:4415" }
   output {

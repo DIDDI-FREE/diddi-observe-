@@ -6,7 +6,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 def settings(service):
-    if service not in ('diddifree-id','diddisend','diddigo'):
+    if service not in ('diddifree-id','diddisend','diddigo','diddipay'):
         raise ValueError('Unknown service: '+service)
     common = {
         'ENVIRONMENT':'staging', 'OTEL_SERVICE_NAME':service,
@@ -23,10 +23,15 @@ def settings(service):
         common.update(DEPLOYMENT_ID=service+'-staging', METRICS_BEARER_TOKEN='',
                       OTEL_EXPORTER_OTLP_CA_FILE='', OTEL_EXPORTER_OTLP_CLIENT_CERTIFICATE_FILE='',
                       OTEL_EXPORTER_OTLP_CLIENT_KEY_FILE='')
+    if service == 'diddipay':
+        for key in ('OTEL_EXPORTER_OTLP_ENDPOINT','OTEL_EXPORTER_OTLP_LOGS_ENDPOINT','OTEL_EXPORTER_OTLP_TRACES_ENDPOINT'):
+            common[key] = common[key].replace('http://169.58.70.37:19480', 'https://logs-otel.diddifree.com')
+        # Existing metrics credentials stay in the producer; this handoff is OTLP only.
+        common.pop('METRICS_BEARER_TOKEN')
     return common
 
 def contract(service):
-    return {
+    result = {
         'handoff_version':'1.0.0', 'protocol_version':'2.0.0', 'protocol_reference':'DIDDI-Observability-v1.md', 'log_schema_version':'1.0.0',
         'service':service, 'environment':'staging', 'deployment_id':service+'-staging',
         'status':'logs_traces_metrics_received' if service in ('diddisend','diddigo') else 'traces_metrics_received_file_worker_received_otlp_logs_migration_required', 'owner_contact':None, 'deployed_sha':None,
@@ -54,9 +59,25 @@ def contract(service):
                  'Existing HTTP staging endpoints remain accepted; HTTPS is available. No automatic URL change.'],
     }
 
+    if service == 'diddipay':
+        result.update(status='central_configuration_prepared_not_deployed',
+                      implementation_required=True, verification_date=None)
+        result['ingress'].update(base_url='https://logs-otel.diddifree.com', public_ingress_verified=False)
+        result['ingress']['tls']['enabled'] = True
+        result['logs'].update(current_transport=None, central_collection_verified=False,
+                             verification_scope='OTLP producer receipt not yet verified')
+        result['traces']['central_collection_verified'] = False
+        result['notes'] = [
+            'Target configuration only. Central routes are not deployed or verified yet.',
+            'Preserve the existing metrics endpoint and token; no business secret is reused.',
+            'No custom CA, shared log volume or Docker socket is required.',
+            'API and worker reception must be verified independently before claiming conformity.',
+        ]
+    return result
+
 def outputs():
     return {'docs/teams/'+s+'.json':json.dumps(contract(s),indent=2,ensure_ascii=False)+'\n'
-            for s in ('diddifree-id','diddisend','diddigo')}
+            for s in ('diddifree-id','diddisend','diddigo','diddipay')}
 
 def update_private_env(service):
     path = ROOT/'secrets/onboarding'/ (service+'.env')

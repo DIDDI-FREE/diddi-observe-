@@ -16,9 +16,9 @@ def outputs():
         'diddisend': ('DiddiSend team', 'diddisend-backend-api-1:8000', '/internal/metrics', '/ready'),
     }
     for service in registry['services']:
-        if service['id'] == 'diddigo':
+        if service['id'] in ('diddigo', 'diddipay'):
             service['otlp']['enabled'] = True
-            service['owner'] = 'DiddiGo team'
+            service['owner'] = service['id'] + ' team'
         if service['id'] not in targets:
             continue
         owner, host, metrics, health = targets[service['id']]

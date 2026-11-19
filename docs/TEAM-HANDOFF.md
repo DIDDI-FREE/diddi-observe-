@@ -11,6 +11,7 @@ Les paramètres varient par service, jamais les règles. Les JSON sont des confi
 | --- | --- | --- |
 | DiddiSend | [JSON](teams/diddisend.json) | Logs/traces OTLP et métriques reçus ; vérifier la checklist 2.0.0 |
 | DiddiGo | [JSON](teams/diddigo.json) | Logs/traces OTLP et métriques reçus ; vérifier la checklist 2.0.0 |
+| DiddiPay | [JSON](teams/diddipay.json) | Métriques UP ; OTLP préparé, activation centrale en attente — [suivi](teams/DIDDIPAY-ONBOARDING.md) |
 | DiddiFreeID | [JSON](teams/diddifree-id.json) | Traces/métriques reçues, logs worker reçus par fichier ; migration OTLP logs requise |
 
 [Message de migration DiddiFreeID](teams/DIDDIFREE-ID-MIGRATION-OTLP.md).

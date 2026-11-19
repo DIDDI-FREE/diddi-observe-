@@ -26,7 +26,13 @@ class OnboardingTests(unittest.TestCase):
                 self.assertTrue(s['otlp']['enabled'])
                 self.assertTrue(s['metrics']['enabled'])
                 self.assertFalse(any(s[k]['enabled'] for k in ('health','logs')))
-            elif s['id'] in ('diddipay','diddicomms'):
+            elif s['id'] == 'diddipay':
+                self.assertTrue(s['metrics']['enabled'])
+                self.assertTrue(s['otlp']['enabled'])
+                self.assertFalse(s['logs']['enabled'])
+                for signal in ('logs', 'traces'):
+                    self.assertIn('/otlp/diddipay/v1/' + signal, output['config/onboarding/nginx.conf'])
+            elif s['id'] == 'diddicomms':
                 self.assertTrue(s['metrics']['enabled'])
                 self.assertFalse(any(s[k]['enabled'] for k in ('health','otlp','logs')))
             elif s['id'] != 'synthetic':

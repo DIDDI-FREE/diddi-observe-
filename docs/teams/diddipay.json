@@ -1,0 +1,68 @@
+{
+  "handoff_version": "1.0.0",
+  "protocol_version": "2.0.0",
+  "protocol_reference": "DIDDI-Observability-v1.md",
+  "log_schema_version": "1.0.0",
+  "service": "diddipay",
+  "environment": "staging",
+  "deployment_id": "diddipay-staging",
+  "status": "central_configuration_prepared_not_deployed",
+  "owner_contact": null,
+  "deployed_sha": null,
+  "ingress": {
+    "base_url": "https://logs-otel.diddifree.com",
+    "proxy": "public IP gateway",
+    "public_ingress_verified": false,
+    "https_base_url": "https://logs-otel.diddifree.com",
+    "https_requires_custom_ca": false,
+    "tls": {
+      "enabled": true,
+      "verify": true,
+      "trust": "system-public-ca-when-https",
+      "custom_ca_required": false,
+      "client_certificate_required": false
+    },
+    "traces_path": "/otlp/diddipay/v1/traces",
+    "logs_path": "/otlp/diddipay/v1/logs"
+  },
+  "metrics": {
+    "path": "/internal/metrics",
+    "transport": "prometheus-http-scrape",
+    "auth": "bearer",
+    "scrape_enabled": true
+  },
+  "logs": {
+    "transport": "otlp-http/protobuf",
+    "migration_required": false,
+    "current_transport": null,
+    "central_collection_verified": false,
+    "verification_scope": "OTLP producer receipt not yet verified"
+  },
+  "protocol_conformance_verified": false,
+  "traces": {
+    "central_collection_verified": false
+  },
+  "implementation_required": true,
+  "verification_date": null,
+  "secret_file_reference": "secrets/onboarding/diddipay.env",
+  "environment_variables": {
+    "ENVIRONMENT": "staging",
+    "OTEL_SERVICE_NAME": "diddipay",
+    "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+    "OTEL_EXPORTER_OTLP_HEADERS": "",
+    "OTEL_LOGS_ENABLED": "true",
+    "OTEL_EXPORTER_OTLP_ENDPOINT": "https://logs-otel.diddifree.com/otlp/diddipay",
+    "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT": "https://logs-otel.diddifree.com/otlp/diddipay/v1/logs",
+    "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": "https://logs-otel.diddifree.com/otlp/diddipay/v1/traces",
+    "DEPLOYMENT_ID": "diddipay-staging",
+    "OTEL_EXPORTER_OTLP_CA_FILE": "",
+    "OTEL_EXPORTER_OTLP_CLIENT_CERTIFICATE_FILE": "",
+    "OTEL_EXPORTER_OTLP_CLIENT_KEY_FILE": ""
+  },
+  "notes": [
+    "Target configuration only. Central routes are not deployed or verified yet.",
+    "Preserve the existing metrics endpoint and token; no business secret is reused.",
+    "No custom CA, shared log volume or Docker socket is required.",
+    "API and worker reception must be verified independently before claiming conformity."
+  ]
+}
