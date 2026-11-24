@@ -46,6 +46,13 @@ def outputs():
         'sources': [{'path': '/var/log/diddifree/observability-' + component + '.jsonl',
                      'component': component} for component in ('api', 'worker')],
     }
+    registry['services'].append({
+        'id':'diddishop', 'name':'diddishop', 'environment':'staging',
+        'deployment_id':'diddishop-staging', 'component':'api', 'owner':'DiddiShop team',
+        'state':'inventoried', 'evidence':[],
+        'otlp':{'enabled':True}, 'metrics':{'enabled':False,'auth':'bearer'},
+        'logs':{'enabled':False}, 'health':{'enabled':False},
+    })
     render.validate(registry)
     # Retain the authenticated synthetic exercise route used by the smoke test.
     nginx = render.nginx(registry)

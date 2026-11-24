@@ -63,7 +63,7 @@ otelcol.processor.transform "diddifree_id" {
       "set(attributes[\"service.name\"], \"diddifree-id\")",
       "set(attributes[\"deployment.environment.name\"], \"staging\")",
       "set(attributes[\"diddi.deployment.id\"], \"diddifree-id-staging\")",
-      "set(attributes[\"diddi.component\"], \"api\")"]
+      "set(attributes[\"diddi.component\"], \"api\") where attributes[\"diddi.component\"] != \"api\" and attributes[\"diddi.component\"] != \"worker\" and attributes[\"diddi.component\"] != \"scheduler\" and attributes[\"diddi.component\"] != \"collector\" and attributes[\"diddi.component\"] != \"web\""]
   }
   log_statements {
     context = "resource"
@@ -71,7 +71,7 @@ otelcol.processor.transform "diddifree_id" {
       "set(attributes[\"service.name\"], \"diddifree-id\")",
       "set(attributes[\"deployment.environment.name\"], \"staging\")",
       "set(attributes[\"diddi.deployment.id\"], \"diddifree-id-staging\")",
-      "set(attributes[\"diddi.component\"], \"api\")"]
+      "set(attributes[\"diddi.component\"], \"api\") where attributes[\"diddi.component\"] != \"api\" and attributes[\"diddi.component\"] != \"worker\" and attributes[\"diddi.component\"] != \"scheduler\" and attributes[\"diddi.component\"] != \"collector\" and attributes[\"diddi.component\"] != \"web\""]
   }
   trace_statements {
     context = "span"
@@ -161,7 +161,7 @@ otelcol.processor.transform "diddigo" {
       "set(attributes[\"service.name\"], \"diddigo\")",
       "set(attributes[\"deployment.environment.name\"], \"staging\")",
       "set(attributes[\"diddi.deployment.id\"], \"diddigo-staging\")",
-      "set(attributes[\"diddi.component\"], \"api\")"]
+      "set(attributes[\"diddi.component\"], \"api\") where attributes[\"diddi.component\"] != \"api\" and attributes[\"diddi.component\"] != \"worker\" and attributes[\"diddi.component\"] != \"scheduler\" and attributes[\"diddi.component\"] != \"collector\" and attributes[\"diddi.component\"] != \"web\""]
   }
   log_statements {
     context = "resource"
@@ -169,7 +169,7 @@ otelcol.processor.transform "diddigo" {
       "set(attributes[\"service.name\"], \"diddigo\")",
       "set(attributes[\"deployment.environment.name\"], \"staging\")",
       "set(attributes[\"diddi.deployment.id\"], \"diddigo-staging\")",
-      "set(attributes[\"diddi.component\"], \"api\")"]
+      "set(attributes[\"diddi.component\"], \"api\") where attributes[\"diddi.component\"] != \"api\" and attributes[\"diddi.component\"] != \"worker\" and attributes[\"diddi.component\"] != \"scheduler\" and attributes[\"diddi.component\"] != \"collector\" and attributes[\"diddi.component\"] != \"web\""]
   }
   trace_statements {
     context = "span"
@@ -205,7 +205,7 @@ otelcol.processor.transform "diddisend" {
       "set(attributes[\"service.name\"], \"diddisend\")",
       "set(attributes[\"deployment.environment.name\"], \"staging\")",
       "set(attributes[\"diddi.deployment.id\"], \"diddisend-staging\")",
-      "set(attributes[\"diddi.component\"], \"api\")"]
+      "set(attributes[\"diddi.component\"], \"api\") where attributes[\"diddi.component\"] != \"api\" and attributes[\"diddi.component\"] != \"worker\" and attributes[\"diddi.component\"] != \"scheduler\" and attributes[\"diddi.component\"] != \"collector\" and attributes[\"diddi.component\"] != \"web\""]
   }
   log_statements {
     context = "resource"
@@ -213,7 +213,7 @@ otelcol.processor.transform "diddisend" {
       "set(attributes[\"service.name\"], \"diddisend\")",
       "set(attributes[\"deployment.environment.name\"], \"staging\")",
       "set(attributes[\"diddi.deployment.id\"], \"diddisend-staging\")",
-      "set(attributes[\"diddi.component\"], \"api\")"]
+      "set(attributes[\"diddi.component\"], \"api\") where attributes[\"diddi.component\"] != \"api\" and attributes[\"diddi.component\"] != \"worker\" and attributes[\"diddi.component\"] != \"scheduler\" and attributes[\"diddi.component\"] != \"collector\" and attributes[\"diddi.component\"] != \"web\""]
   }
   trace_statements {
     context = "span"
@@ -249,7 +249,7 @@ otelcol.processor.transform "diddipay" {
       "set(attributes[\"service.name\"], \"diddipay\")",
       "set(attributes[\"deployment.environment.name\"], \"staging\")",
       "set(attributes[\"diddi.deployment.id\"], \"diddipay-staging\")",
-      "set(attributes[\"diddi.component\"], \"api\")"]
+      "set(attributes[\"diddi.component\"], \"api\") where attributes[\"diddi.component\"] != \"api\" and attributes[\"diddi.component\"] != \"worker\" and attributes[\"diddi.component\"] != \"scheduler\" and attributes[\"diddi.component\"] != \"collector\" and attributes[\"diddi.component\"] != \"web\""]
   }
   log_statements {
     context = "resource"
@@ -257,7 +257,7 @@ otelcol.processor.transform "diddipay" {
       "set(attributes[\"service.name\"], \"diddipay\")",
       "set(attributes[\"deployment.environment.name\"], \"staging\")",
       "set(attributes[\"diddi.deployment.id\"], \"diddipay-staging\")",
-      "set(attributes[\"diddi.component\"], \"api\")"]
+      "set(attributes[\"diddi.component\"], \"api\") where attributes[\"diddi.component\"] != \"api\" and attributes[\"diddi.component\"] != \"worker\" and attributes[\"diddi.component\"] != \"scheduler\" and attributes[\"diddi.component\"] != \"collector\" and attributes[\"diddi.component\"] != \"web\""]
   }
   trace_statements {
     context = "span"
@@ -293,7 +293,7 @@ otelcol.processor.transform "synthetic" {
       "set(attributes[\"service.name\"], \"synthetic\")",
       "set(attributes[\"deployment.environment.name\"], \"test\")",
       "set(attributes[\"diddi.deployment.id\"], \"observe-pilot\")",
-      "set(attributes[\"diddi.component\"], \"api\")"]
+      "set(attributes[\"diddi.component\"], \"api\") where attributes[\"diddi.component\"] != \"api\" and attributes[\"diddi.component\"] != \"worker\" and attributes[\"diddi.component\"] != \"scheduler\" and attributes[\"diddi.component\"] != \"collector\" and attributes[\"diddi.component\"] != \"web\""]
   }
   log_statements {
     context = "resource"
@@ -301,7 +301,7 @@ otelcol.processor.transform "synthetic" {
       "set(attributes[\"service.name\"], \"synthetic\")",
       "set(attributes[\"deployment.environment.name\"], \"test\")",
       "set(attributes[\"diddi.deployment.id\"], \"observe-pilot\")",
-      "set(attributes[\"diddi.component\"], \"api\")"]
+      "set(attributes[\"diddi.component\"], \"api\") where attributes[\"diddi.component\"] != \"api\" and attributes[\"diddi.component\"] != \"worker\" and attributes[\"diddi.component\"] != \"scheduler\" and attributes[\"diddi.component\"] != \"collector\" and attributes[\"diddi.component\"] != \"web\""]
   }
   trace_statements {
     context = "span"
@@ -346,4 +346,48 @@ loki.process "synthetic" {
   stage.static_labels { values = {"service_name" = "synthetic", "environment" = "test", "deployment_id" = "observe-pilot", "component" = "api"} }
   stage.label_drop { values = ["filename"] }
   forward_to = [loki.write.central.receiver]
+}
+
+
+otelcol.receiver.otlp "diddishop" {
+  http { endpoint = "0.0.0.0:4416" }
+  output {
+    traces = [otelcol.processor.transform.diddishop.input]
+    logs = [otelcol.processor.transform.diddishop.input]
+  }
+}
+otelcol.processor.transform "diddishop" {
+  error_mode = "propagate"
+  trace_statements {
+    context = "resource"
+    statements = ["set(attributes[\"service.namespace\"], \"diddi\")",
+      "set(attributes[\"service.name\"], \"diddishop\")",
+      "set(attributes[\"deployment.environment.name\"], \"staging\")",
+      "set(attributes[\"diddi.deployment.id\"], \"diddishop-staging\")",
+      "set(attributes[\"diddi.component\"], \"api\") where attributes[\"diddi.component\"] != \"api\" and attributes[\"diddi.component\"] != \"worker\" and attributes[\"diddi.component\"] != \"scheduler\" and attributes[\"diddi.component\"] != \"collector\" and attributes[\"diddi.component\"] != \"web\""]
+  }
+  log_statements {
+    context = "resource"
+    statements = ["set(attributes[\"service.namespace\"], \"diddi\")",
+      "set(attributes[\"service.name\"], \"diddishop\")",
+      "set(attributes[\"deployment.environment.name\"], \"staging\")",
+      "set(attributes[\"diddi.deployment.id\"], \"diddishop-staging\")",
+      "set(attributes[\"diddi.component\"], \"api\") where attributes[\"diddi.component\"] != \"api\" and attributes[\"diddi.component\"] != \"worker\" and attributes[\"diddi.component\"] != \"scheduler\" and attributes[\"diddi.component\"] != \"collector\" and attributes[\"diddi.component\"] != \"web\""]
+  }
+  trace_statements {
+    context = "span"
+    statements = [
+      "delete_matching_keys(attributes, \"(?i).*?(authorization|password|secret|token|cookie|email|phone|url.full|db.statement).*\")",
+    ]
+  }
+  log_statements {
+    context = "log"
+    statements = [
+      "delete_matching_keys(attributes, \"(?i).*?(authorization|password|secret|token|cookie|email|phone).*\")",
+    ]
+  }
+  output {
+    traces = [otelcol.processor.memory_limiter.bounded.input]
+    logs = [otelcol.processor.memory_limiter.bounded.input]
+  }
 }

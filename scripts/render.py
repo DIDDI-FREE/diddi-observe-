@@ -140,8 +140,12 @@ loki.write "central" {
         if s.get('otlp', {}).get('enabled'):
             attrs = {'service.namespace': 'diddi', 'service.name': s['name'],
                      'deployment.environment.name': s['environment'],
-                     'diddi.deployment.id': s['deployment_id'], 'diddi.component': s['component']}
+                     'diddi.deployment.id': s['deployment_id']}
             statements = [f'set(attributes["{k}"], "{v}")' for k,v in attrs.items()]
+            # Keep only bounded, valid producer component identities.
+            allowed = ('api', 'worker', 'scheduler', 'collector', 'web')
+            condition = ' and '.join('attributes["diddi.component"] != "' + c + '"' for c in allowed)
+            statements.append('set(attributes["diddi.component"], "' + s['component'] + '") where ' + condition)
             resources = ',\n      '.join(json.dumps(x) for x in statements)
             parts.append(f'''
 otelcol.receiver.otlp "{ident}" {{

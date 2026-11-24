@@ -63,7 +63,7 @@ otelcol.processor.transform "synthetic" {
       "set(attributes[\"service.name\"], \"synthetic\")",
       "set(attributes[\"deployment.environment.name\"], \"test\")",
       "set(attributes[\"diddi.deployment.id\"], \"observe-pilot\")",
-      "set(attributes[\"diddi.component\"], \"api\")"]
+      "set(attributes[\"diddi.component\"], \"api\") where attributes[\"diddi.component\"] != \"api\" and attributes[\"diddi.component\"] != \"worker\" and attributes[\"diddi.component\"] != \"scheduler\" and attributes[\"diddi.component\"] != \"collector\" and attributes[\"diddi.component\"] != \"web\""]
   }
   log_statements {
     context = "resource"
@@ -71,7 +71,7 @@ otelcol.processor.transform "synthetic" {
       "set(attributes[\"service.name\"], \"synthetic\")",
       "set(attributes[\"deployment.environment.name\"], \"test\")",
       "set(attributes[\"diddi.deployment.id\"], \"observe-pilot\")",
-      "set(attributes[\"diddi.component\"], \"api\")"]
+      "set(attributes[\"diddi.component\"], \"api\") where attributes[\"diddi.component\"] != \"api\" and attributes[\"diddi.component\"] != \"worker\" and attributes[\"diddi.component\"] != \"scheduler\" and attributes[\"diddi.component\"] != \"collector\" and attributes[\"diddi.component\"] != \"web\""]
   }
   trace_statements {
     context = "span"

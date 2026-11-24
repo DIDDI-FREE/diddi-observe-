@@ -416,6 +416,29 @@
         "url": "http://synthetic:8000/ready",
         "isolated_network": true
       }
+    },
+    {
+      "id": "diddishop",
+      "name": "diddishop",
+      "environment": "staging",
+      "deployment_id": "diddishop-staging",
+      "component": "api",
+      "owner": "DiddiShop team",
+      "state": "inventoried",
+      "evidence": [],
+      "otlp": {
+        "enabled": true
+      },
+      "metrics": {
+        "enabled": false,
+        "auth": "bearer"
+      },
+      "logs": {
+        "enabled": false
+      },
+      "health": {
+        "enabled": false
+      }
     }
   ]
 }
